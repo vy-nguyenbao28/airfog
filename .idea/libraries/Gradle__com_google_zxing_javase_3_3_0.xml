@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Gradle: com.google.zxing:javase:3.3.0" type="AndroidModuleLibraryType">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.zxing/javase/3.3.0/1d0cd0280ea9919ca928df5a3752b6f6a645b00e/javase-3.3.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
