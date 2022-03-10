@@ -267,7 +267,7 @@ class _SwitchHistory extends State<SwitchHistory> {
                 children: [
                   Text('Gần đây',
                     style: TextStyle(fontSize: 13, fontWeight: FontWeight.w400),),
-                  deleteHistory()
+                  deleteHistory() // comment
                 ],
               ),
             ),
