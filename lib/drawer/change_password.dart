@@ -339,7 +339,8 @@ class _ChangePassword extends State<ChangePassword> {
               FirebaseAuth.instance.currentUser!.updatePassword(textPassNew.text);
               user.doc('${FirebaseAuth.instance.currentUser!.email}').set({
                 'password': '${textPassNew.text}',
-                'apikey': '$id'
+                'apikey': '$id',
+                'name': '${FirebaseAuth.instance.currentUser!.displayName}'
               });
             }
           },

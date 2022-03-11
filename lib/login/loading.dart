@@ -3,6 +3,7 @@ import 'package:mist_app/home.dart';
 import 'package:mist_app/theme/colors.dart';
 import 'package:mist_app/login/login.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:mist_app/theme/constant.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Loading extends StatefulWidget {
@@ -12,28 +13,40 @@ class Loading extends StatefulWidget {
 
 class _Loading extends State<Loading> {
   CollectionReference login = FirebaseFirestore.instance.collection('login');
+  CollectionReference account = FirebaseFirestore.instance.collection('user');
   var email;
 
   Future<void> getUser() async {
     WidgetsFlutterBinding.ensureInitialized();
     SharedPreferences prefs = await SharedPreferences.getInstance();
     email = prefs.getString('email');
+    loadApiKey();
   }
 
-  @override
-  void initState() {
-    getUser();
-    super.initState();
+  loadApiKey(){
+    account.doc('$email').get().then((DocumentSnapshot documentSnapshot) {
+      id = documentSnapshot['api_key'].toString();
+    });
   }
 
-  @override
-  Widget build(BuildContext context) {
+  SwitchWidget(){
     new Future.delayed(new Duration(milliseconds: 1500), () {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => email == null ? Login() : Home()),
       );
     });
+  }
+
+  @override
+  void initState() {
+    getUser();
+    SwitchWidget();
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
         child: Image.asset('assets/logo.gif', width: 200, color: AppColors.tertiary,),

@@ -34,13 +34,10 @@ class _SwitchHome extends State<SwitchHome>
   String roomname = '';
   String flow = '';
   int selectedCard = 0;
-  int temp = 0;
-  int loadcell = 0;
   int checkTemp = 0;
   int checkFlow = 0;
   bool _isConnected = false;
   bool checkStatus = false;
-  bool refresh = false;
   Timer? timerRefresh;
   Timer? timerLoadData;
 
@@ -111,9 +108,7 @@ class _SwitchHome extends State<SwitchHome>
       timer!.cancel();
     }
     timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      //setState(() {
       (secondsPassed > 0) ? secondsPassed-- : timer.cancel();
-      //});
       _events!.add(secondsPassed);
     });
   }
@@ -139,44 +134,6 @@ class _SwitchHome extends State<SwitchHome>
         });
       });
     });
-  }
-
-  //Hàm HTTP
-  List<UserModel>? model;
-  Future<void> getDataHttp() async {
-    timerLoadData = Timer.periodic(Duration(seconds: 3), (Timer t) async {
-      // var response = await Dio().getUri(Uri.http('192.168.16.2', '/getweighttemp', {'api_key': '$id'}));
-      // if (response.statusCode == 200) {
-      //   List<dynamic> body = cnv.jsonDecode(response.data);
-      //   model = body.map((dynamic item) => UserModel.fromJson(item)).cast<UserModel>().toList();
-      //   temp = int.parse(model![0].temp.toString());
-      //   chemicalLevel = int.parse(model![0].chemicallevel.toString());
-      // }
-      var response = await Dio().getUri(Uri.http('192.168.16.2', '/getweighttemp', {'api_key': '$id'}));
-      // Uri url = Uri.http('61add905d228a9001703afe3.mockapi.io', '/api/vyii');
-      // http.Response res = await http.get(url);
-      if (response.statusCode == 200){
-        List<dynamic> body = cnv.jsonDecode(response.data);
-        model = body.map((dynamic item) => UserModel.fromJson(item)).cast<UserModel>().toList();
-        setState(() {
-          temp = int.parse(model![0].temp.toString());
-          loadcell = int.parse(model![0].loadcell.toString());
-        });
-      }
-      if (model != null){
-        setState(() {
-          refresh = true;
-        });
-      }
-      else
-        setState(() {
-          refresh = false;
-        });
-    });
-  }
-  Future<Null> refeshApp() async{
-    await Future.delayed(Duration(milliseconds: 500));
-    getDataHttp();
   }
 
   //Linh tinh
@@ -216,10 +173,6 @@ class _SwitchHome extends State<SwitchHome>
   @override
   void initState() {
     super.initState();
-    getDataHttp();
-    timerRefresh = Timer.periodic(Duration(seconds: 3), (Timer t) => setState(() {
-      refresh = true;
-    }));
     _tabController = TabController(length: 4, vsync: this);
     getSelectedCard();
     _events = StreamController<int>.broadcast();
@@ -241,38 +194,33 @@ class _SwitchHome extends State<SwitchHome>
       counter = int.parse(documentSnapshot['countuser'].toString());
     });
     checkConnectivty();
-    return RefreshIndicator(
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(0,0,0,20),
-        child: ListView(
-          children: [
-            valueCard(),
-            SizedBox(height: 4),
-            Padding(
-                padding: const EdgeInsets.only(left: 20),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('Chương trình',
-                        style:
-                        TextStyle(fontWeight: FontWeight.w700, fontSize: 25)),
-                    addUserButton(),
-                  ],
-                )),
-            SizedBox(
-                height: MediaQuery.of(context).size.height - 400,
-                child: (counter == 0)
-                    ? Center(child: Text('Chưa có chương trình', style: TextStyle(fontSize: 30),),)
-                    : ListView.builder(
-                  scrollDirection: Axis.vertical,
-                  itemCount: counter,
-                  itemBuilder: (context, index) => roomCard(index),
-                )
+    return ListView(
+      padding: EdgeInsets.fromLTRB(0,0,0,20),
+      children: [
+        valueCard(),
+        SizedBox(height: 4),
+        Padding(
+            padding: const EdgeInsets.only(left: 20),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Chương trình',
+                    style:
+                    TextStyle(fontWeight: FontWeight.w700, fontSize: 25)),
+                addUserButton(),
+              ],
+            )),
+        SizedBox(
+            height: MediaQuery.of(context).size.height - 400,
+            child: (counter == 0)
+                ? Center(child: Text('Chưa có chương trình', style: TextStyle(fontSize: 30),),)
+                : ListView.builder(
+              scrollDirection: Axis.vertical,
+              itemCount: counter,
+              itemBuilder: (context, index) => roomCard(index),
             )
-          ],
-        ),
-      ),
-      onRefresh: refeshApp,
+        )
+      ],
     );
   }
 
@@ -676,21 +624,7 @@ class _SwitchHome extends State<SwitchHome>
                           SizedBox(
                             height: 11,
                           ),
-                          (!refresh && model == null)
-                              ? Container(
-                              height: 85.3,
-                              width: 85.3,
-                              child: Center(
-                                  child: SizedBox(
-                                    height: 45,
-                                    width: 45,
-                                    child: CircularProgressIndicator(
-                                      valueColor: AlwaysStoppedAnimation<Color> (AppColors.tertiary),
-                                    ),
-                                  ))
-                          )
-                              : Container(),
-                          ((model == null || !_isConnected) && refresh)
+                          (model == null || !_isConnected)
                               ? Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: <Widget>[
@@ -1065,8 +999,7 @@ class _SwitchHome extends State<SwitchHome>
                           SizedBox(
                             height: 10,
                           ),
-
-                          Container(height: 60, width: 1.5, color: Colors.grey),
+                          Image.asset('assets/Room.png', width: 47),
                           StreamBuilder<DocumentSnapshot>(
                               stream: machine.doc('user').collection('user').doc('countuser').snapshots(),
                               builder: (BuildContext context,

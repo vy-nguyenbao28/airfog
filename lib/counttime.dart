@@ -43,34 +43,28 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
   static const duration = const Duration(seconds: 1);
   CountDownController _controller = CountDownController();
 
+  final dateTime = DateTime.now();
+  int? year, month, day;
+  String? time;
+
   //Khai báo Firebase
-  CollectionReference history = FirebaseFirestore.instance.collection('history');
   CollectionReference machine = FirebaseFirestore.instance.collection('$id');
 
-  void getHistory() async {
-    final dateTime = DateTime.now();
-    final date = dateTime.date;
-    final time = dateTime.time;
-    setState(() async {
-      QuerySnapshot _myDoc =
-      await FirebaseFirestore.instance.collection('history').get();
-      List<DocumentSnapshot> _myDocCount = _myDoc.docs;
-      print(_myDocCount.length);
-      if (status == 'Hoàn thành'){
-        history.doc('${_myDocCount.length-1}').set({
-          'datetime': '$date, $time',
-          'roomid': '$Roomname',
-          'timerun': '$timePhun',
-          'status': '$status'
-        });
-      }
-      else history.doc('${_myDocCount.length-1}').set({
-        'datetime': '$date, $time',
-        'roomid': '$Roomname',
-        'timerun': '$timeUp',
-        'status': '$status'
-      });
-      history.doc("counthistory").set({'counthistory': '${_myDocCount.length}'});
+
+  updateHistoryToFireStore(String yearstart, String monthstart, String daystart, String timestart, String runtime, String errorcode) async {
+    QuerySnapshot querySnapshot = await machine.doc('history').
+      collection(yearstart).
+      doc(monthstart).
+      collection(daystart).get();
+    List<DocumentSnapshot> _myDocCount = querySnapshot.docs;
+    machine.doc('history').
+      collection(yearstart).
+      doc(monthstart).
+      collection(daystart).doc('${_myDocCount.length}').set({
+        'date_created': '$yearstart/$monthstart/$daystart} $timestart',
+        'room_name': 'Chạy nhanh',
+        'run_time': '${runtime.padLeft(2, '0')}:${runtime.padLeft(2, '0')}:${runtime.padLeft(2, '0')}',
+        'status': errorcode
     });
   }
 
@@ -81,7 +75,7 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
         if (timeUp == 0) {
           status = 'Hoàn thành';
           sendData('stop',{'api_key': '$id', 'stopcode':'0'});
-          getHistory();
+          updateHistoryToFireStore(year.toString(), month.toString(), day.toString(), time.toString(), timePhun.toString(),'1');
           //FlutterRingtonePlayer.playNotification();
           Navigator.of(context).pop();
           showDialog(
@@ -128,16 +122,7 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
   //Hàm HTTP
   List<UserModel>? model;
   Future<void> getDataHttp() async {
-    // var response = await Dio().getUri(Uri.http('192.168.16.2', '/getweighttemp', {'api_key': '${id.toString}'}));
-    // if (response.statusCode == 200) {
-    //   List<dynamic> body = cnv.jsonDecode(response.data);
-    //   model = body.map((dynamic item) => UserModel.fromJson(item)).cast<UserModel>().toList();
-    //   temp = int.parse(model![0].temp.toString());
-    //   chemicalLevel = int.parse(model![0].chemicallevel.toString());
-    // }
     var response = await Dio().getUri(Uri.http('192.168.16.2', '/getweighttemp', {'api_key': '$id'}));
-    // Uri url = Uri.http('61add905d228a9001703afe3.mockapi.io', '/api/vyii');
-    // http.Response res = await http.get(url);
     if (response.statusCode == 200){
       List<dynamic> body = cnv.jsonDecode(response.data);
       model = body.map((dynamic item) => UserModel.fromJson(item)).cast<UserModel>().toList();
@@ -208,6 +193,10 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
   //Hàm initState và dispose
   @override
   void initState() {
+    year = dateTime.year;
+    month = dateTime.month;
+    day = dateTime.day;
+    time = '${dateTime.hour}:${dateTime.minute}:${dateTime.second}';
     super.initState();
     timerLoadData = Timer.periodic(Duration(seconds: 3), (Timer t) {
       getDataHttp();
@@ -229,6 +218,11 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
         Timer.run(() {
           errorDisplay(context, 'Quá tải nhiệt !!!');
         });
+        timeUp = timePhun - timeUp;
+        updateHistoryToFireStore(year.toString(), month.toString(), day.toString(), time.toString(), timeUp.toString(),'3');
+        timePhun = 0;
+        isActive = false;
+        //sendData('stop',{'api_key': '$id', 'stopcode':'0'});
         checkShowdialog = true;
       }
     }
@@ -237,6 +231,11 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
         Timer.run(() {
           errorDisplay(context, 'Hết hóa chất !!!');
         });
+        timeUp = timePhun - timeUp;
+        updateHistoryToFireStore(year.toString(), month.toString(), day.toString(), time.toString(), timeUp.toString(),'4');
+        timePhun = 0;
+        isActive = false;
+        sendData('stop',{'api_key': '$id', 'stopcode':'1'});
         checkShowdialog = true;
       }
     }
@@ -408,78 +407,25 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
   }
 
   Widget buttonTime(){
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // SizedBox(
-        //   height: 70,
-        //   width: 70,
-        //   child: RawMaterialButton(
-        //     elevation: 2.0,
-        //     fillColor: AppColors.testtime,
-        //     onPressed: (){
-        //       if (timePhun != 0 && model != null && _isConnected){
-        //         machine.doc('user').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
-        //           if(temp < int.parse(documentSnapshot['temp'].toString())
-        //               && loadcell >= 20){
-        //             setState(() {
-        //               isActive = !isActive;
-        //               if(isActive){
-        //                 _controller.resume();
-        //                 sendData('start',{'api_key': '$id',
-        //                   'testcode':'1',
-        //                   'testcode':'1',
-        //                   'testcode':'1',
-        //                 });
-        //               }else{
-        //                 _controller.pause();
-        //                 sendData('stop',{'api_key': '$id',
-        //                   'stopcode':'0',
-        //                 });
-        //               }
-        //             });
-        //           }
-        //           else if(temp > int.parse(documentSnapshot['temp'].toString())
-        //               && int.parse(model![0].loadcell.toString()) >= 20) {
-        //                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        //                   content: const Text('Đang có lỗi !!!',
-        //                     style: TextStyle(fontSize: 16),
-        //                     textAlign: TextAlign.center,
-        //                   ),
-        //                   backgroundColor: Color(0xff898989),
-        //                   duration: Duration(seconds: 1),
-        //                   shape: StadiumBorder(),
-        //                   margin: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-        //                   behavior: SnackBarBehavior.floating,
-        //                   elevation: 0,
-        //                 ));
-        //           }
-        //         });
-        //       }
-        //     },
-        //     child:  Icon(isActive ? Icons.pause : Icons.play_arrow,color: AppColors.white,size: 60,),
-        //     padding: EdgeInsets.all(5.0),
-        //     shape: CircleBorder(),
-        //   ),
-        // ),
-        // SizedBox(width: 20),
-        SizedBox(
-          height: 70,
-          width: 70,
-          child: RawMaterialButton(
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(MediaQuery.of(context).size.width * 0.15,0,MediaQuery.of(context).size.width * 0.15,0),
+        child: RawMaterialButton(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(5)),
             elevation: 2.0,
-            fillColor: AppColors.testtime,
-            onPressed: (){
+            fillColor: AppColors.tertiary,
+            onPressed: () {
               if (timePhun != 0 && model != null && _isConnected){
                 showDialog(
                     barrierDismissible: false,
                     context: context,
                     builder: (BuildContext context)=> CupertinoAlertDialog(
                       title: Text(
-                      'Dừng ngay',
-                      style: TextStyle(
-                          fontSize: 23,
-                          fontWeight: FontWeight.w500)),
+                          'Dừng ngay',
+                          style: TextStyle(
+                              fontSize: 23,
+                              fontWeight: FontWeight.w500)),
                       content: Padding(
                         padding: EdgeInsets.fromLTRB(0,7,0,7),
                         child: Text(
@@ -487,47 +433,60 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
                             style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w400)),
-                  ),
-                  actions: [
-                    CupertinoDialogAction(child: TextButton(
-                      child: Text(
-                          'Có',
-                          style: TextStyle(
-                              fontSize: 23,
-                              fontWeight: FontWeight.w500,color: Colors.red)),
-                      onPressed: (){
-                        setState(() {
-                          timeUp = timePhun - timeUp;
-                          status = 'Dừng đột ngột';
-                          getHistory();
-                          timePhun = 0;
-                          isActive = false;
-                          sendData('stop',{'api_key': '$id', 'stopcode':'1'});
-                        });
-                        Navigator.of(context).pop();
-                        Navigator.of(context).pop();
-                      },
-                    )),
-                    CupertinoDialogAction(child: TextButton(
-                      child: Text(
-                          'Không',
-                          style: TextStyle(
-                              fontSize: 23,
-                              fontWeight: FontWeight.w500, color: Colors.blue)),
-                      onPressed: (){
-                        Navigator.pop(context);
-                      },
-                    )),
-                  ],
-                ));
+                      ),
+                      actions: [
+                        CupertinoDialogAction(child: TextButton(
+                          child: Text(
+                              'Có',
+                              style: TextStyle(
+                                  fontSize: 23,
+                                  fontWeight: FontWeight.w500,color: Colors.red)),
+                          onPressed: (){
+                            setState(() {
+                              timeUp = timePhun - timeUp;
+                              updateHistoryToFireStore(year.toString(), month.toString(), day.toString(), time.toString(), timeUp.toString(),'2');
+                              timePhun = 0;
+                              isActive = false;
+                              sendData('stop',{'api_key': '$id', 'stopcode':'1'});
+                            });
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                          },
+                        )),
+                        CupertinoDialogAction(child: TextButton(
+                          child: Text(
+                              'Không',
+                              style: TextStyle(
+                                  fontSize: 23,
+                                  fontWeight: FontWeight.w500, color: Colors.blue)),
+                          onPressed: (){
+                            Navigator.pop(context);
+                          },
+                        )),
+                      ],
+                    ));
               }
+
             },
-            child:  Icon(Icons.stop,color: Colors.white,size: 60),
-            padding: EdgeInsets.all(5.0),
-            shape: CircleBorder(),
-          ),
-        ),
-      ],
+            child: Padding(
+                padding: EdgeInsets.all(5),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Icon(
+                      Icons.stop,
+                      color: Colors.white,
+                      size: 35,
+                    ),
+                    Text(" Dừng ngay",
+                        style: TextStyle(
+                          fontSize: 25,
+                          color: Colors.white,
+                        )),
+                  ],
+                ))),
+      ),
     );
   }
 
@@ -619,6 +578,7 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
                         checkShowdialog = false;
                         checkConfirmButton = true;
                       });
+                      Navigator.pop(context);
                       Navigator.pop(context);
                     },
                     child: Container(

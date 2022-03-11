@@ -641,9 +641,9 @@ class _Registration extends State<Registration> {
         account.doc('${textEmail.text}').set({
           'apikey': textPassAdmin.text,
           'password': textPass.text,
+          'name': textUserName.text,
         });
         FirebaseAuth.instance.currentUser!.updateDisplayName(textUserName.text);
-        FirebaseAuth.instance.currentUser!.updatePhotoURL('{"id":"${textPassAdmin.text}","photourl":""}');
         showDialog(
           context: context,
           barrierDismissible: false,

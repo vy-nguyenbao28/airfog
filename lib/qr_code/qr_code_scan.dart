@@ -51,8 +51,6 @@ class _QRScan extends State<QRScan> with SingleTickerProviderStateMixin{
   Future<void> getDataHttp() async {
     timerLoadData = Timer.periodic(Duration(seconds: 3), (Timer t) async {
       var response = await Dio().getUri(Uri.http('192.168.16.2', '/getweighttemp', {'api_key': '$id'}));
-      // Uri url = Uri.http('61add905d228a9001703afe3.mockapi.io', '/api/vyii');
-      // http.Response res = await http.get(url);
       if (response.statusCode == 200){
         List<dynamic> body = cnv.jsonDecode(response.data);
         model = body.map((dynamic item) => UserModel.fromJson(item)).cast<UserModel>().toList();

@@ -29,17 +29,9 @@ class _Login extends State<Login> {
   bool checkPassFaild = false;
   bool checkAccountFaild = false;
 
-  readNameAndId(){
-    UserId user = UserId.fromJson(cnv.jsonDecode(FirebaseAuth.instance.currentUser!.photoURL.toString()));
-    setState(() {
-      id = user.id.toString();
-      photourl = user.photourl.toString();
-    });
-  }
+  CollectionReference account = FirebaseFirestore.instance.collection('user');
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
-  CollectionReference login = FirebaseFirestore.instance.collection('login');
 
   @override
   Widget build(BuildContext context) {
@@ -115,10 +107,10 @@ class _Login extends State<Login> {
           if (val == null || val.isEmpty) {
             return '* Nhập email';
           }
-          else if (!regExp.hasMatch(val)) {
+          if (!regExp.hasMatch(val)) {
             return '* Nhập đúng dạng email';
           }
-          else if (checkAccountFaild){
+          if (checkAccountFaild){
             return '* Không tìm thấy người dùng';
           }
         }
@@ -360,30 +352,40 @@ class _Login extends State<Login> {
   }
 
   Future<void> SignIn() async {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return Dialog(
-            child: new Padding(
-              padding: EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  new CircularProgressIndicator(),
-                  SizedBox(height: 20),
-                  new Text("Đang đăng nhập..."),
-                ],
-              ),
-            )
-        );
-      },
-    );
+    // showDialog(
+    //   context: context,
+    //   barrierDismissible: false,
+    //   builder: (BuildContext context) {
+    //     return Dialog(
+    //         child: new Padding(
+    //           padding: EdgeInsets.all(20),
+    //           child: Column(
+    //             mainAxisSize: MainAxisSize.min,
+    //             children: [
+    //               new CircularProgressIndicator(),
+    //               SizedBox(height: 20),
+    //               new Text("Đang đăng nhập..."),
+    //             ],
+    //           ),
+    //         )
+    //     );
+    //   },
+    // );
     try {
       final user = await FirebaseAuth.instance.signInWithEmailAndPassword(
           email: textAccount.text, password: textPass.text);
       if (user.user!.emailVerified) {
-        readNameAndId();
+        account.doc('${textAccount.text}').get().then((DocumentSnapshot documentSnapshot) {
+          setState(() {
+            id = documentSnapshot['api_key'].toString();
+          });
+          account.doc('${textAccount.text}').set({
+            'pass': '${textPass.text}',
+            'api_key': documentSnapshot['api_key'].toString(),
+            'name': user.user!.displayName
+          });
+        });
+
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (contex) => Home(),
@@ -417,13 +419,21 @@ class _Login extends State<Login> {
         setState(() {
           checkPassFaild = true;
         });
-      }
-      else if (e.message == 'There is no user record corresponding to this identifier. The user may have been deleted.') {
+      } else
+        setState(() {
+          checkPassFaild = false;
+          checkAccountFaild = false;
+        });
+      if (e.message == 'There is no user record corresponding to this identifier. The user may have been deleted.') {
         setState(() {
           checkAccountFaild = true;
         });
-      }
-      else if (e.message == 'We have blocked all requests from this device due to unusual activity. Try again later.') {
+      } else
+        setState(() {
+          checkAccountFaild = false;
+          checkAccountFaild = false;
+        });
+      if (e.message == 'We have blocked all requests from this device due to unusual activity. Try again later.') {
         showDialog(
           context: context,
           builder: (ctx) => AlertDialog(

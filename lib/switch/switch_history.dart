@@ -10,6 +10,7 @@ import 'package:mist_app/theme/colors.dart';
 import 'package:mist_app/theme/constant.dart';
 import '../counttime.dart';
 import 'package:connectivity/connectivity.dart';
+import 'package:collection/collection.dart';
 
 class SwitchHistory extends StatefulWidget {
   const SwitchHistory({Key? key}) : super(key: key);
@@ -19,23 +20,15 @@ class SwitchHistory extends StatefulWidget {
 
 class _SwitchHistory extends State<SwitchHistory> {
   //Khai báo biến
-  int firstyear = 0;
-  int firstmonth = 0;
-  int firstday = 0;
 
-  int lastyear = 0;
-  int lastmonth = 0;
-  int lastday = 0;
 
 
   bool? _isConnected;
   bool showHistory = false;
   bool checkHistory = false;
 
-  DateTime selectedFirstDate = DateTime.utc(DateTime.now().year, DateTime.now().month, DateTime.now().day -2);
-  DateTime selectedLastDate = DateTime.now();
 
-  CollectionReference machine = FirebaseFirestore.instance.collection('tbraa162-notv-hyan-h969-99nk1u6t2017');
+  CollectionReference machine = FirebaseFirestore.instance.collection('$id');
 
   //Các hàm gọi
   checkConnectivty() async{
@@ -90,8 +83,9 @@ class _SwitchHistory extends State<SwitchHistory> {
         }
         if ((picked.year < lastyear)
             || ((picked.year == lastyear) && (picked.month < lastmonth))
-            || ((picked.year == lastyear) && (picked.month == lastmonth) && (picked.day < lastday))){
+            || ((picked.year == lastyear) && (picked.month == lastmonth) && (picked.day <= lastday))){
           setState(() {
+            showHistory = false;
             firstyear = picked.year;
             firstmonth = picked.month;
             firstday = picked.day;
@@ -99,10 +93,16 @@ class _SwitchHistory extends State<SwitchHistory> {
           });
           history.clear();
           searchHistory();
+          Timer.periodic(Duration(seconds: 2), (Timer t) => setState(() {
+            setState(() {
+              showHistory = true;
+            });
+          }));
         }
       }
     } else {
       if (picked != null && picked != selectedLastDate){
+
         if ((picked.year < firstyear)
             || ((picked.year == firstyear) && (picked.month < firstmonth))
             || ((picked.year == firstyear) && (picked.month == firstmonth) && (picked.day < firstday))){
@@ -110,8 +110,9 @@ class _SwitchHistory extends State<SwitchHistory> {
         }
         if ((picked.year > firstyear)
             || ((picked.year == firstyear) && (picked.month > firstmonth))
-            || ((picked.year == firstyear) && (picked.month == firstmonth) && (picked.day > firstday))){
+            || ((picked.year == firstyear) && (picked.month == firstmonth) && (picked.day >= firstday))){
           setState(() {
+            showHistory = false;
             lastyear = picked.year;
             lastmonth = picked.month;
             lastday = picked.day;
@@ -119,14 +120,32 @@ class _SwitchHistory extends State<SwitchHistory> {
           });
           history.clear();
           searchHistory();
+          Timer.periodic(Duration(microseconds: 1500), (Timer t) => setState(() {
+            setState(() {
+              showHistory = true;
+            });
+          }));
         }
       }
     }
   }
 
-  List<History> history= [];
+  String Status(String input){
+    String output = 'Hoàn thành';
+    if (input == '2'){
+      output = 'Dừng đột ngột';
+    }
+    if (input == '3'){
+      output = 'Quá nhiệt động cơ';
+    }
+    if (input == '4'){
+      output = 'Hết dung dịch';
+    }
+    return output;
+  }
 
   searchHistory(){
+    history.clear();
     if (firstyear == lastyear){ //Nếu cùng 1 năm
       if(firstmonth == lastmonth){
         for (int k = lastday; k >= firstday; k--){
@@ -199,14 +218,43 @@ class _SwitchHistory extends State<SwitchHistory> {
     }
   }
 
-  loadHistoryWhenStart(){
-    firstyear = selectedLastDate.year;
-    firstmonth = selectedLastDate.month;
-    firstday = selectedLastDate.day - 2;
+  sortHistory(){
+    for (int i = 0; i <= history.length - 2; i++){
+      for (int j = i + 1; j <= history.length - 1; j++){
+        if (history[i].year! < history[j].year!){
+          swapItem(i,j);
+        }
+        if (history[i].year! == history[j].year!){
+          if (history[i].month! < history[j].month!){
+            swapItem(i,j);
+          }
+          if (history[i].month! == history[j].month!){
+            if (history[i].day! < history[j].day!){
+              swapItem(i,j);
+            }
+          }
+        }
+      }
+    }
+  }
 
-    lastyear = selectedLastDate.year;
-    lastmonth = selectedLastDate.month;
-    lastday = selectedLastDate.day;
+  swapItem(int i, int j){
+    List a = [0,1,2,3];
+    a[0] = history[i].year;
+    a[1] = history[i].month;
+    a[2] = history[i].day;
+    a[3] = history[i].sum;
+
+    history[i].year = history[j].year;
+    history[i].month = history[j].month;
+    history[i].day = history[j].day;
+    history[i].sum = history[j].sum;
+
+    history[j].year = a[0];
+    history[j].month = a[1];
+    history[j].day = a[2];
+    history[j].sum = a[3];
+
   }
 
   getValueHistory(int year, int month, int day) async {
@@ -214,14 +262,20 @@ class _SwitchHistory extends State<SwitchHistory> {
     collection('$year').doc('$month').collection('$day').get();
     if (querySnapshot.docs.isNotEmpty){
       List<DocumentSnapshot> _myDocCount = querySnapshot.docs;
-      print('$year/$month/$day/${_myDocCount.length}');
       history.add(History(year: year, month: month, day: day, sum: _myDocCount.length));
+      sortHistory();
     }
   }
 
-  void initState(){
-    loadHistoryWhenStart();
+  Future<Null> refeshApp() async{
+    await Future.delayed(Duration(milliseconds: 500));
+    history.clear();
     searchHistory();
+  }
+
+  void initState(){
+    searchHistory();
+    sortHistory();
     Timer.periodic(Duration(seconds: 2), (Timer t) => setState(() {
       setState(() {
         showHistory = true;
@@ -233,10 +287,10 @@ class _SwitchHistory extends State<SwitchHistory> {
   Widget build(BuildContext context) {
     checkConnectivty();
     return Scaffold(
-        body: Column(
-          children: [
-            SizedBox(height: 50),
-            Container(
+        body: RefreshIndicator(
+          child: Column(
+            children: [
+              Container(
                 height: 40,
                 margin: EdgeInsets.all(5),
                 padding: EdgeInsets.symmetric(vertical: 5, horizontal: 0),
@@ -248,7 +302,7 @@ class _SwitchHistory extends State<SwitchHistory> {
                         blurRadius: 10,
                       )
                     ]),
-                child:Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.max,
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -257,48 +311,52 @@ class _SwitchHistory extends State<SwitchHistory> {
                     SetupCalendar(lastyear, lastmonth, lastday, false),
                   ],
                 ),
-            ),
-            Container(
-              height: 45,
-              padding: EdgeInsets.only(right: 15,left: 23),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text('Gần đây',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w400),),
-                  deleteHistory() // comment
-                ],
               ),
-            ),
-            IconButton(
-              onPressed: () async {
-                print('${history.length}');
-              },
-              icon: Icon(Icons.send),
-            ),
-            (showHistory)
-                ? (history.length != 0)
-                      ? Container(
-                          padding: EdgeInsets.zero,
-                          child: Column(
-                            children: history.map((value){
-                              return SizedBox(
-                                  height: int.parse(value.sum.toString()) * 115,
-                                  child:ListView.builder(
-                                    padding: EdgeInsets.zero,
-                                    scrollDirection: Axis.vertical,
-                                    itemCount: value.sum,
-                                    itemBuilder: (context, index) => HistoryCard(index, value.year!, value.month!, value.day!, int.parse(value.sum.toString())),
-                                  )
-                              );
-                            }).toList(),
-                          ),
-                        )
-                      : Center(child: Text('Không có lịch sử', style: TextStyle(fontSize: 30), textAlign: TextAlign.center))
-                : Center(child: CircularProgressIndicator())
-          ],
+              Container(
+                height: 40,
+                padding: EdgeInsets.only(right: 15,left: 23),
+                margin: EdgeInsets.only(bottom: 3),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text('Gần đây',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w400),),
+                    SortHistory() // comment
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: MediaQuery.of(context).size.height - 250,
+                child: ListView(
+                  children: [
+                    (showHistory)
+                        ? (history.length != 0)
+                        ? Column(
+                      children: history.map((value){
+                        return SizedBox(
+                            height: int.parse(value.sum.toString()) * 115,
+                            child: ListView.builder(
+                              physics: NeverScrollableScrollPhysics(),
+                              padding: EdgeInsets.zero,
+                              scrollDirection: Axis.vertical,
+                              itemCount: value.sum,
+                              itemBuilder: (context, index) =>
+                                  HistoryCard(index, value.year!, value.month!, value.day!, int.parse(value.sum.toString())),
+                            )
+                        );
+                      }).toList(),
+                    )
+                        : Center(child: Text('Không có lịch sử', style: TextStyle(fontSize: 30), textAlign: TextAlign.center))
+                        : Center(child: CircularProgressIndicator()),
+                  ],
+                ),
+              )
+            ],
+          ),
+          onRefresh: refeshApp,
         )
+
     );
   }
 
@@ -325,50 +383,51 @@ class _SwitchHistory extends State<SwitchHistory> {
               Column(
                 children: [
                   Container(
-                    height: 95,
-                    width: MediaQuery.of(context).size.width - 120,
-                    child: StreamBuilder<DocumentSnapshot>(
-                        stream: machine.doc('history').collection('$year').
-                                doc('$month').collection('$day').
-                                doc('${sum - index - 1}').snapshots(),
-                        builder: (BuildContext context,
-                            AsyncSnapshot<DocumentSnapshot> snapshot) {
-                          if (!snapshot.hasData) {
-                            return Center(
-                                child: CircularProgressIndicator());
-                          }
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              Text('${snapshot.data!["room_name"]}',
-                                  style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w500)),
-                              Text('Ngày phun: ${snapshot.data!["date_created"]}',
-                                  style: TextStyle(
+                      height: 95,
+                      width: MediaQuery.of(context).size.width - 120,
+                      child: StreamBuilder<DocumentSnapshot>(
+                          stream: machine.doc('history').collection('$year').
+                          doc('$month').collection('$day').
+                          doc('${sum - index - 1}').snapshots(),
+                          builder: (BuildContext context,
+                              AsyncSnapshot<DocumentSnapshot> snapshot) {
+                            if (!snapshot.hasData) {
+                              return Center(
+                                  child: CircularProgressIndicator());
+                            }
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Text('${snapshot.data!["room_name"]}',
+                                    style: TextStyle(
+                                        fontFamily: (snapshot.data!["room_name"] == 'Chạy nhanh') ? 'Poppins' : '',
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w500)),
+                                Text('Ngày phun: ${snapshot.data!["date_created"]}',
+                                    style: TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w500,
                                       color: Color(0xff696969),),
-                                  overflow: TextOverflow.clip, maxLines: 1, softWrap: false
-                              ),
-                              Text('Thời gian phun: ${snapshot.data!["run_time"]}',
-                                  style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w500,
-                                      color: Color(0xff696969)
-                                  )),
-                              Text('${snapshot.data!["status"]}',
-                                  style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w500,
-                                      color: (snapshot.data!["status"] == 'Dừng đột ngột')
-                                          ? Colors.red
-                                          : AppColors.tertiary
-                                  )),
-                            ],
-                          );
-                        })
+                                    overflow: TextOverflow.clip, maxLines: 1, softWrap: false
+                                ),
+                                Text('Thời gian phun: ${snapshot.data!["run_time"]}',
+                                    style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w500,
+                                        color: Color(0xff696969)
+                                    )),
+                                Text('${Status(snapshot.data!["status"])}',
+                                    style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w500,
+                                        color: (snapshot.data!["status"] == '1')
+                                            ? AppColors.tertiary
+                                            : Colors.red
+                                    )),
+                              ],
+                            );
+                          })
                   )
                 ],
               ),
@@ -377,89 +436,38 @@ class _SwitchHistory extends State<SwitchHistory> {
 
   Widget SetupCalendar(int year, int month, int day, bool select){
     return GestureDetector(
-      onTap: (){
-        _selectDate(context, select);
-      },
-      child: (select)
-          ? Text('Từ ${day.toString().padLeft(2, '0')}/${month.toString().padLeft(2, '0')}/$year',
-        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-      )
-          : Text('Đến ${day.toString().padLeft(2, '0')}/${month.toString().padLeft(2, '0')}/$year',
-        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-      )
+        onTap: (){
+          _selectDate(context, select);
+        },
+        child: (select)
+            ? Text('Từ ${day.toString().padLeft(2, '0')}/${month.toString().padLeft(2, '0')}/$year',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+        )
+            : Text('Đến ${day.toString().padLeft(2, '0')}/${month.toString().padLeft(2, '0')}/$year',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+        )
     );
   }
 
-  Widget deleteHistory(){
+  Widget SortHistory(){
     return TextButton.icon(
-      icon: Icon(Icons.delete_sharp, color: AppColors.tertiary),
-      label: Text('Xóa lịch sử',
+      icon: Icon(Icons.history, color: AppColors.tertiary),
+      label: Text('Đồng bộ',
         style: TextStyle(fontSize: 13,fontWeight: FontWeight.w400, color: AppColors.tertiary),),
       onPressed: () {
         if (_isConnected == false){
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: const Text('Không có kết nối Internet !!!',
-            style: TextStyle(fontSize: 16),
-            textAlign: TextAlign.center,
-            ),
-            backgroundColor: Color(0xff898989),
-            duration: Duration(seconds: 1),
-            shape: StadiumBorder(),
-            margin: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-            behavior: SnackBarBehavior.floating,
-            elevation: 0,
-          ));
+          notification('Không có kết nối Internet !!!');
         }
         else if (_isConnected == true){
-          showDialog(
-              barrierDismissible: false,
-              context: context,
-              builder: (BuildContext context) => CupertinoAlertDialog(
-                title: Text('Xóa lịch sử',
-                    style: TextStyle(
-                        fontSize: 23, fontWeight: FontWeight.w500)),
-                content: Text(
-                    'Bạn có chắc chắn muốn xóa lịch sử không?',
-                    style: TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.w400)),
-                actions: [
-                  CupertinoDialogAction(
-                      child: TextButton(
-                        child: Text('Có',
-                            style: TextStyle(
-                                fontSize: 23,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.red)),
-                        onPressed: () {
-                          // history.doc('counthistory').get().then((DocumentSnapshot documentSnapshot) {
-                          //   for (int i = 0; i<int.parse(documentSnapshot['counthistory'].toString()); i++){
-                          //     history.doc('$i').delete();
-                          //   }
-                          // });
-                          // history.doc("counthistory").set({'counthistory': '0'});
-                          Navigator.pop(context);
-                        },
-                      )),
-                  CupertinoDialogAction(
-                      child: TextButton(
-                        child: Text('Không',
-                            style: TextStyle(
-                                fontSize: 23,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.blue)),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                      )),
-                ],
-              ));
+          final inputs = ['a', 'b', 'c', 'd', 'e', 'f'];
+          final indexes = inputs.mapIndexed((index, element) => index).toList();
+
+          inputs.forEachIndexed((index, element) {
+            print('index: $index, element: $element');
+          });
+          print(indexes);
         }
       },
     );
   }
-}
-
-class History{ //modal class for Person object
-  int? year, month, day, sum;
-  History({required this.year, required this.month, required this.day, required this.sum});
 }

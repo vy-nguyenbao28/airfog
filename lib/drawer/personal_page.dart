@@ -58,10 +58,7 @@ class _PersonalPage extends State<PersonalPage> {
             .child('${FirebaseAuth.instance.currentUser!.email}/${FirebaseAuth.instance.currentUser!.displayName}')
             .putFile(file);
         var downloadUrl = await snapshot.ref.getDownloadURL();
-        setState(() {
-          photourl = downloadUrl;
-        });
-        FirebaseAuth.instance.currentUser!.updatePhotoURL('{"id":"$id","photourl":"$photourl"}');
+        FirebaseAuth.instance.currentUser!.updatePhotoURL('$downloadUrl');
         Navigator.of(context).pop();
       }
     }
@@ -76,16 +73,8 @@ class _PersonalPage extends State<PersonalPage> {
     });
   }
 
-  readPhotoUrl(){
-    UserId user = UserId.fromJson(cnv.jsonDecode(FirebaseAuth.instance.currentUser!.photoURL.toString()));
-    setState(() {
-      photourl = user.photourl.toString();
-    });
-  }
-
   @override
   void initState() {
-    readPhotoUrl();
     getMachineName();
     super.initState();
   }
@@ -118,12 +107,6 @@ class _PersonalPage extends State<PersonalPage> {
                   LeftInfor(),
                   RightInfor(),
                 ],
-              ),
-              IconButton(
-                onPressed: (){
-                  readPhotoUrl();
-                },
-                icon: Icon(Icons.send),
               ),
             ],
           );
@@ -175,7 +158,7 @@ class _PersonalPage extends State<PersonalPage> {
                     onTap: (){
                       ChangeImage();
                     },
-                    child: (photourl == '')
+                    child: (FirebaseAuth.instance.currentUser!.photoURL == null)
                         ? Container(
                         decoration: BoxDecoration(
                             shape: BoxShape.circle,
@@ -197,7 +180,7 @@ class _PersonalPage extends State<PersonalPage> {
                         ),
                         shape: BoxShape.circle,
                         image: DecorationImage(
-                          image: NetworkImage('$photourl'),
+                          image: NetworkImage('${FirebaseAuth.instance.currentUser!.photoURL}'),
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -569,10 +552,10 @@ class _PersonalPage extends State<PersonalPage> {
                   style: TextStyle(color: Colors.blue, fontSize: 16),),
               ),
               onTap: (){
-                if (photourl != ''){
+                if (FirebaseAuth.instance.currentUser!.photoURL != null){
                   Navigator.of(context).push(
                     MaterialPageRoute(builder: (contex) =>
-                        Image.network('$photourl'),
+                        Image.network('${FirebaseAuth.instance.currentUser!.photoURL}'),
                     ),
                   );
                 }
@@ -607,11 +590,11 @@ class _PersonalPage extends State<PersonalPage> {
                   style: TextStyle(color: Color(0xffFF0033), fontSize: 16),),
               ),
               onTap: (){
-                if (photourl != ''){
+                if (FirebaseAuth.instance.currentUser!.photoURL != null){
                   Navigator.of(context).pop();
                   FirebaseStorage.instance.ref().
                   child('${FirebaseAuth.instance.currentUser!.email}/${FirebaseAuth.instance.currentUser!.displayName}').delete();
-                  FirebaseAuth.instance.currentUser!.updatePhotoURL('{"id":"$id","photourl":""}');
+                  FirebaseAuth.instance.currentUser!.updatePhotoURL(null);
                 }
               },
             ),

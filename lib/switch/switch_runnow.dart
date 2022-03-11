@@ -26,12 +26,10 @@ class SwitchRunNow extends StatefulWidget {
 class _SwitchRunNow extends State<SwitchRunNow>
     with TickerProviderStateMixin {
   //Biến Widget
-  int temp = 0;
   int checkTemp = 0;
   int checkFlow = 0;
-  int loadcell = 0;
+
   bool _isConnected = false;
-  bool refresh = false;
   bool checkStatus = false;
   Timer? timerRefresh;
   Timer? timerLoadData;
@@ -88,57 +86,14 @@ class _SwitchRunNow extends State<SwitchRunNow>
     });
   }
 
-  //Hàm HTTP
-  List<UserModel>? model;
-
-  Future<void> getDataHttp() async {
-    timerLoadData = Timer.periodic(Duration(seconds: 3), (Timer t) async {
-      // var response = await Dio().getUri(Uri.http('192.168.16.2', '/getweighttemp', {'api_key': '${id.toString}'}));
-      // if (response.statusCode == 200) {
-      //   List<dynamic> body = cnv.jsonDecode(response.data);
-      //   model = body.map((dynamic item) => UserModel.fromJson(item)).cast<UserModel>().toList();
-      //   temp = int.parse(model![0].temp.toString());
-      //   chemicalLevel = int.parse(model![0].chemicallevel.toString());
-      // }
-      var response = await Dio().getUri(Uri.http('192.168.16.2', '/getweighttemp', {'api_key': '$id'}));
-      // Uri url = Uri.http('61add905d228a9001703afe3.mockapi.io', '/api/vyii');
-      // http.Response res = await http.get(url);
-      if (response.statusCode == 200){
-        List<dynamic> body = cnv.jsonDecode(response.data);
-        model = body.map((dynamic item) => UserModel.fromJson(item)).cast<UserModel>().toList();
-        setState(() {
-          temp = int.parse(model![0].temp.toString());
-          loadcell = int.parse(model![0].loadcell.toString());
-        });
-      }
-      if (model != null){
-        setState(() {
-          refresh = true;
-        });
-      }
-      else
-        setState(() {
-          refresh = false;
-        });
-    });
-  }
 
   void sendData(String mode, final dataSend)async  {
     Dio().getUri(Uri.http('192.168.16.2','/$mode',dataSend));
   }
 
-  Future<Null> refeshApp() async{
-    await Future.delayed(Duration(milliseconds: 500));
-    getDataHttp();
-  }
-
   //InitState & Dispose
   @override
   void initState() {
-    getDataHttp();
-    timerRefresh = Timer.periodic(Duration(seconds: 3), (Timer t) => setState(() {
-      refresh = true;
-    }));
     _events = StreamController<int>.broadcast();
     controller = AnimationController(
       vsync: this,
@@ -166,35 +121,36 @@ class _SwitchRunNow extends State<SwitchRunNow>
   @override
   Widget build(BuildContext context) {
     checkConnectivty();
-    return RefreshIndicator(
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(0,0,0,20),
-          child: ListView(
-            children: [
-              valueCard(),
-              SizedBox(height: 15),
-              Padding(
-                padding: EdgeInsets.fromLTRB(15,0,15,0),
-                child: Center(
-                  child: Text('Ấn vào đây để nhập thời gian chạy',
-                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 23,color: Colors.red),
-                    textAlign: TextAlign.center,),
-                ),
-              ),
-              Center(
-                child: CountdownPage(),
-              ),
-              // IconButton(
-              //   onPressed: (){
-              //     FirebaseAuth.instance.currentUser!.updateDisplayName('Nguyễn Bảo Vỹ');
-              //     FirebaseAuth.instance.currentUser!.updatePhotoURL('{"id":"$id","photourl":"https://firebasestorage.googleapis.com/v0/b/nut16-app.appspot.com/o/tivua15%40gmail.com%2FNguyen%20bao%20vy?alt=media&token=8f7fef4b-f242-4a17-b30f-f29e37ade9e5"}');
-              //   },
-              //   icon: Icon(Icons.send),
-              // ),
-            ],
+    return ListView(
+      padding: EdgeInsets.fromLTRB(0,0,0,20),
+      children: [
+        valueCard(),
+        SizedBox(height: 15),
+        Padding(
+          padding: EdgeInsets.fromLTRB(15,0,15,0),
+          child: Center(
+            child: Text('Ấn vào đây để nhập thời gian chạy',
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 23,color: Colors.red),
+              textAlign: TextAlign.center,),
           ),
         ),
-        onRefresh: refeshApp,
+        Center(
+          child: CountdownPage(),
+        ),
+        IconButton(
+          onPressed: (){
+            CollectionReference user = FirebaseFirestore.instance.collection('user');
+            user.doc('${FirebaseAuth.instance.currentUser!.email}').get().then((DocumentSnapshot documentSnapshot) {
+              user.doc('${FirebaseAuth.instance.currentUser!.email}').set({
+                'password': '123456',
+                'api_key': documentSnapshot['api_key'].toString()
+              });
+            });
+
+          },
+          icon: Icon(Icons.send),
+        ),
+      ],
     );
   }
 
@@ -238,21 +194,7 @@ class _SwitchRunNow extends State<SwitchRunNow>
                           SizedBox(
                             height: 11,
                           ),
-                          (!refresh && model == null)
-                              ? Container(
-                                    height: 85.3,
-                                    width: 85.3,
-                                    child: Center(
-                                        child: SizedBox(
-                                          height: 45,
-                                          width: 45,
-                                          child: CircularProgressIndicator(
-                                            valueColor: AlwaysStoppedAnimation<Color> (AppColors.tertiary),
-                                          ),
-                                        ))
-                                )
-                              : Container(),
-                          ((model == null || !_isConnected) && refresh)
+                          ((model == null || !_isConnected))
                               ? Column(
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         children: <Widget>[

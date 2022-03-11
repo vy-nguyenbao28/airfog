@@ -35,12 +35,6 @@ class _SwitchCheck extends State<SwitchCheck> {
     return List.generate(len, (index) => _chars[r.nextInt(_chars.length)]).join();
   }
 
-  void testbutton() async {
-    FirebaseAuth.instance.currentUser?.sendEmailVerification();
-    print(double.tryParse('83.,222'));
-  }
-  /////////////////
-
   void sendData(String mode, final data)  {
     Dio().getUri(Uri.http('192.168.16.2','/$mode',data));
   }
@@ -76,12 +70,6 @@ class _SwitchCheck extends State<SwitchCheck> {
                   ],
                 ),
                 SizedBox(height: 20),
-                IconButton(
-                  onPressed: (){
-                    testbutton();
-                  },
-                  icon: Icon(Icons.send),
-                ),
               ],
             )
     ));

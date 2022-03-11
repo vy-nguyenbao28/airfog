@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: SwitchHistory(),
+      home: Loading(),
       routes: <String, WidgetBuilder>{
         '/home': (BuildContext context) => Home(),
       },

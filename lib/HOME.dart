@@ -1,10 +1,14 @@
+import 'dart:async';
 import 'dart:ui';
+import 'dart:convert' as cnv;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:mist_app/check_connect.dart';
 import 'package:mist_app/drawer/change_password.dart';
 import 'package:mist_app/login/login.dart';
+import 'package:mist_app/network_request/user_model.dart';
 import 'package:mist_app/qr_code/qr_code_scan.dart';
 import 'package:mist_app/theme/colors.dart';
 import 'package:mist_app/switch/switch_history.dart';
@@ -17,6 +21,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mist_app/drawer/personal_page.dart';
 import 'package:mist_app/theme/constant.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dio/dio.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -27,10 +32,69 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   //TabBar
   late TabController _tabController;
 
+  List<CheckConnect>? modelconnect;
+  Timer? timerLoadData;
 
+  CollectionReference machine = FirebaseFirestore.instance.collection('$id');
+
+  void sendData(String mode, final dataSend)async  {
+    Dio().getUri(Uri.http('192.168.16.2','/$mode',dataSend));
+  }
+
+  void getDataHttp() async {
+    //var response = await Dio().getUri(Uri.http('192.168.16.2', '/getweighttemp', {'api_key': '$id'}));
+    var response = await Dio().getUri(Uri.http('61add905d228a9001703afe3.mockapi.io', '/api/vyii'));
+    if (response.statusCode == 200){
+      List<dynamic> body = cnv.jsonDecode(response.data);
+      model = body.map((dynamic item) => UserModel.fromJson(item)).cast<UserModel>().toList();
+      setState(() {
+        temp = int.parse(model![0].temp.toString());
+        loadcell = int.parse(model![0].loadcell.toString());
+      });
+      if (model![0].data.toString() == '1'){
+        var check = await Dio().getUri(Uri.http('192.168.16.2', '/checkconnect', {'api_key': '$id'}));
+        if (check.statusCode == 200){
+          List<dynamic> body = cnv.jsonDecode(check.data);
+          modelconnect = body.map((dynamic item) => CheckConnect.fromJson(item)).cast<CheckConnect>().toList();
+          if (modelconnect![0].datastate.toString() == '1'){
+            sendData('response',{'api_key': '$id',
+              'rescode':'2',  //dữ liệu đã được ghi
+            });
+          } else
+            sendData('response',{'api_key': '$id',
+              'rescode':'1',   //dữ liệu chưa được ghi
+            });
+        }
+      }
+    } else print('chưa có');
+  }
+
+  updateHistoryToFireStore() async {
+    QuerySnapshot querySnapshot = await machine.doc('history').
+      collection('${modelconnect![0].monthstart}').
+      doc('${modelconnect![0].monthstart}').
+      collection('${modelconnect![0].daystart}').get();
+    List<DocumentSnapshot> _myDocCount = querySnapshot.docs;
+    print('${_myDocCount.length}');
+    int seconds = int.parse(modelconnect![0].runtime.toString()) % 60;
+    int minutes = (int.parse(modelconnect![0].runtime.toString()) % (3600)) ~/ 60;
+    int hours = int.parse(modelconnect![0].runtime.toString()) ~/ (3600);
+    machine.doc('history').
+    collection('${modelconnect![0].yearstart}').
+    doc('${modelconnect![0].monthstart}').
+    collection('${modelconnect![0].daystart}').doc('${_myDocCount.length}').set({
+      'date_created': '${modelconnect![0].yearstart}/${modelconnect![0].monthstart}/${modelconnect![0].daystart} ${modelconnect![0].timestart}',
+      'room_name': '${modelconnect![0].roomname}',
+      'run_time': '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
+      'status': '${modelconnect![0].errorcode}'
+    });
+  }
 
   @override
   void initState() {
+    timerLoadData = Timer.periodic(Duration(seconds: 3), (Timer t) async {
+      getDataHttp();
+    });
     super.initState();
     _tabController = TabController(length: 5, vsync: this);
   }
@@ -69,8 +133,10 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 color: Colors.white,
               ),
               onPressed: () async{
-                Navigator.of(context).push(MaterialPageRoute(
-                    builder: (BuildContext context) => QRScan()));
+                getDataHttp();
+                print('$temp');
+                // Navigator.of(context).push(MaterialPageRoute(
+                //     builder: (BuildContext context) => QRScan()));
               },
             ),
           ],
@@ -175,7 +241,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    (photourl == '')
+                    (FirebaseAuth.instance.currentUser!.photoURL == null)
                         ? Padding(
                         padding: EdgeInsets.fromLTRB(15,0,15,0),
                         child: Image.asset('assets/add-user.png', width: 70)
@@ -188,7 +254,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         color: Colors.white,
                         shape: BoxShape.circle,
                         image: DecorationImage(
-                          image: NetworkImage('$photourl'),
+                          image: NetworkImage('${FirebaseAuth.instance.currentUser!.photoURL}'),
                           fit: BoxFit.cover,
                         ),
                       ),
