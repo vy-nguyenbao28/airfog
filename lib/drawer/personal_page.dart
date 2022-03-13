@@ -23,6 +23,8 @@ class _PersonalPage extends State<PersonalPage> {
   String? password;
   String? machinename;
 
+  double heightbox = 40;
+
   bool Saved = false;
   bool ShowId = false;
   bool CheckError = false;
@@ -73,9 +75,19 @@ class _PersonalPage extends State<PersonalPage> {
     });
   }
 
+  getPassword(){
+    CollectionReference user = FirebaseFirestore.instance.collection('user');
+    user.doc('${FirebaseAuth.instance.currentUser!.email}').get().then((DocumentSnapshot documentSnapshot) {
+      setState(() {
+        password = documentSnapshot['password'].toString();
+      });
+    });
+  }
+
   @override
   void initState() {
     getMachineName();
+    getPassword();
     super.initState();
   }
 
@@ -102,12 +114,23 @@ class _PersonalPage extends State<PersonalPage> {
                     textAlign: TextAlign.center,),
                 ),
               ),
-              Row(
-                children: [
-                  LeftInfor(),
-                  RightInfor(),
-                ],
-              ),
+              Container(
+                padding: EdgeInsets.fromLTRB(15,0,15,0),
+                height: 250,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    DisplayName(),
+                    Container(height: 1, color: Colors.grey),
+                    Email(),
+                    Container(height: 1, color: Colors.grey),
+                    MachineName(),
+                    Container(height: 1, color: Colors.grey),
+                    MachineCode(),
+                    Container(height: 1, color: Colors.grey),
+                  ],
+                ),
+              )
             ],
           );
         },
@@ -194,103 +217,145 @@ class _PersonalPage extends State<PersonalPage> {
     );
   }
 
-  Widget LeftInfor(){
+  Widget DisplayName(){
     double font = MediaQuery.of(context).size.width * 0.039;
+    double sizewith = MediaQuery.of(context).size.width;
     return Container(
-      padding: EdgeInsets.fromLTRB(20,0,0,0),
-      height: 250,
-      width: MediaQuery.of(context).size.width * 0.37,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.start,
+      height: heightbox,
+      child: Row(
         children: [
-          Text("Tên người dùng",
-              style: TextStyle(color: Colors.grey, fontSize: font),overflow: TextOverflow.clip, maxLines: 1, softWrap: false),
-          Container(height: 1, color: Colors.grey),
-          Text("Email đăng ký",
-              style: TextStyle(color: Colors.grey, fontSize: font),overflow: TextOverflow.clip, maxLines: 1, softWrap: false),
-          Container(height: 1, color: Colors.grey),
-          Text("Tên máy",
-              style: TextStyle(color: Colors.grey, fontSize: font),overflow: TextOverflow.clip, maxLines: 1, softWrap: false),
-          Container(height: 1, color: Colors.grey),
-          Text("Mã đăng ký",
-              style: TextStyle(color: Colors.grey, fontSize: font),overflow: TextOverflow.clip, maxLines: 1, softWrap: false),
-          Container(height: 1, color: Colors.grey),
+          Container(
+            width: sizewith * 0.37 - 15,
+            child: Text("Tên người dùng",
+                style: TextStyle(color: Colors.grey, fontSize: font),
+                overflow: TextOverflow.clip, maxLines: 1, softWrap: false),
+          ),
+          Container(
+            width: sizewith * 0.63 - 15,
+            child: (Saved)
+                ? SizedBox(height: font + 3, child: ChangeUserName())
+                : Text("${FirebaseAuth.instance.currentUser!.displayName}",
+                style: TextStyle(fontSize: font),
+                overflow: TextOverflow.visible, maxLines: 1, softWrap: false),
+          ),
         ],
       ),
     );
   }
 
-  Widget RightInfor(){
+  Widget Email(){
     double font = MediaQuery.of(context).size.width * 0.039;
+    double sizewith = MediaQuery.of(context).size.width;
     return Container(
-      padding: EdgeInsets.fromLTRB(0,0,20,0),
-      height: 250,
-      width: MediaQuery.of(context).size.width * 0.63,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.start,
+      height: heightbox,
+      child: Row(
         children: [
-          (Saved)
-              ? SizedBox(height: font + 3, child: ChangeUserName())
-              : Text("${FirebaseAuth.instance.currentUser!.displayName}", style: TextStyle(fontSize: font),overflow: TextOverflow.visible, maxLines: 1, softWrap: false),
-          Container(height: 1, color: Colors.grey),
-          Text("${FirebaseAuth.instance.currentUser!.email}", style: TextStyle(fontSize: font),overflow: TextOverflow.visible, maxLines: 1, softWrap: false),
-          Container(height: 1, color: Colors.grey),
-            (Saved)
-                ? SizedBox(height: font + 3, child: ChangeMachineName())
-                : Text("${machinename}", overflow: TextOverflow.fade, maxLines: 1, softWrap: false, style: TextStyle(fontSize: font),),
-          Container(height: 1, color: Colors.grey),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              (!ShowId)
-                  ? Text("****************", style: TextStyle(fontSize: font))
-                  : SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.6-56,
-                      child: Text("${id}", overflow: TextOverflow.fade, maxLines: 1, softWrap: false, style: TextStyle(fontSize: font)),
-                    ),
-              SizedBox(
-                height: 17,
-                child: IconButton(
-                  padding: new EdgeInsets.all(0.0),
-                  splashRadius: 17,
-                  icon: Icon(
-                    ShowId
-                        ? Icons.copy
-                        : Icons.visibility_off,
-                    color: Colors.grey,
-                    size: 20,
-                  ),
-                  onPressed: () {
-                    if (!ShowId){
-                      ShowCode();
-                    }
-                    if (ShowId){
-                      FlutterClipboard.copy(id.toString()).then((value) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: const Text('Đã copy mã đăng ký',
-                            style: TextStyle(fontSize: 16),
-                            textAlign: TextAlign.center,
-                          ),
-                          backgroundColor: Color(0xff898989),
-                          duration: Duration(seconds: 1),
-                          shape: StadiumBorder(),
-                          margin: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                          behavior: SnackBarBehavior.floating,
-                          elevation: 0,
-                        ));
-                      });
-                    }
-                  },
-                ),
-              )
-            ],
+          Container(
+            width: sizewith * 0.37 - 15,
+            child: Text("Email đăng ký",
+                style: TextStyle(color: Colors.grey, fontSize: font),
+                overflow: TextOverflow.clip, maxLines: 1, softWrap: false),
           ),
-          Container(height: 1, color: Colors.grey),
+          Container(
+            width: sizewith * 0.63 - 15,
+            child: Text("${FirebaseAuth.instance.currentUser!.email}",
+                style: TextStyle(fontSize: font),
+                overflow: TextOverflow.visible, maxLines: 1, softWrap: false),
+          ),
         ],
-      )
+      ),
+    );
+  }
+
+  Widget MachineName(){
+    double font = MediaQuery.of(context).size.width * 0.039;
+    double sizewith = MediaQuery.of(context).size.width;
+    return Container(
+      height: heightbox,
+      child: Row(
+        children: [
+          Container(
+            width: sizewith * 0.37 - 15,
+            child: Text("Tên máy",
+                style: TextStyle(color: Colors.grey, fontSize: font),
+                overflow: TextOverflow.clip, maxLines: 1, softWrap: false),
+          ),
+          Container(
+            width: sizewith * 0.63 - 15,
+            child: (Saved)
+                ? SizedBox(height: font + 3, child: ChangeMachineName())
+                : Text("${machinename}", style: TextStyle(fontSize: font),
+              overflow: TextOverflow.fade, maxLines: 1, softWrap: false))
+        ],
+      ),
+    );
+  }
+
+  Widget MachineCode(){
+    double font = MediaQuery.of(context).size.width * 0.039;
+    double sizewith = MediaQuery.of(context).size.width;
+    return Container(
+      height: heightbox,
+      child: Row(
+        children: [
+          Container(
+            width: sizewith * 0.37 - 15,
+            child: Text("Mã đăng ký",
+                style: TextStyle(color: Colors.grey, fontSize: font),
+                overflow: TextOverflow.clip, maxLines: 1, softWrap: false),
+          ),
+          Container(
+            width: sizewith * 0.63 - 15,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                (!ShowId)
+                    ? Text("****************", style: TextStyle(fontSize: font))
+                    : SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.6-56,
+                  child: Text("${id}", overflow: TextOverflow.fade, maxLines: 1, softWrap: false, style: TextStyle(fontSize: font)),
+                ),
+                SizedBox(
+                  height: 17,
+                  child: IconButton(
+                    padding: new EdgeInsets.all(0.0),
+                    splashRadius: 17,
+                    icon: Icon(
+                      ShowId
+                          ? Icons.copy
+                          : Icons.visibility_off,
+                      color: Colors.grey,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      if (!ShowId){
+                        ShowCode();
+                      }
+                      if (ShowId){
+                        FlutterClipboard.copy(id.toString()).then((value) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: const Text('Đã copy mã đăng ký',
+                              style: TextStyle(fontSize: 16),
+                              textAlign: TextAlign.center,
+                            ),
+                            backgroundColor: Color(0xff898989),
+                            duration: Duration(seconds: 1),
+                            shape: StadiumBorder(),
+                            margin: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                            behavior: SnackBarBehavior.floating,
+                            elevation: 0,
+                          ));
+                        });
+                      }
+                    },
+                  ),
+                )
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -298,27 +363,52 @@ class _PersonalPage extends State<PersonalPage> {
     showDialog(
         barrierDismissible: false,
         context: context,
-        builder: (BuildContext context) => SimpleDialog(
-          contentPadding: EdgeInsets.only(left: 10, right: 10),
-          titlePadding: const EdgeInsets.fromLTRB(0, 15, 0, 10),
-          title: Center(child: Text('Xác minh'),),
-          children: <Widget>[
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: 10),
-                Stack(
-                  alignment: Alignment.centerRight,
-                  children: [
-                    Form(
-                        key: _formKey,
-                        child: EnterPass()
-                    ),
-                  ],
-                ),
-                SizedBox(height: 15),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        builder: (BuildContext context) {
+          return SimpleDialog(
+            contentPadding: EdgeInsets.only(left: 10, right: 10),
+            titlePadding: const EdgeInsets.fromLTRB(0, 15, 0, 10),
+            title: Center(child: Text('Xác minh người dùng'),),
+            children: <Widget>[
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 10),
+                  Stack(
+                    alignment: Alignment.topRight,
+                    children: [
+                      Form(
+                          key: _formKey,
+                          child: EnterPass()),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(),
+                          Padding(
+                            padding: EdgeInsets.only(top: 2),
+                            child: IconButton(
+                              splashRadius: 17,
+                              onPressed: (){
+                                setState(() {
+                                  _passwordVisible = !_passwordVisible;
+                                });
+                                (context as Element).markNeedsBuild();
+                              },
+                              icon: Icon(
+                                _passwordVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                                color: Colors.grey,
+                                size: 20,
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 15),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       RawMaterialButton(
                           shape: RoundedRectangleBorder(
@@ -375,12 +465,13 @@ class _PersonalPage extends State<PersonalPage> {
                                       fontSize: 18, color: AppColors.tertiary)))
                       )
                     ],
-                ),
-                SizedBox(height: 10)
-              ],
-            )
-          ],
-        ));
+                  ),
+                  SizedBox(height: 10)
+                ],
+              )
+            ],
+          );
+        });
   }
 
   Widget EnterPass(){
@@ -401,6 +492,24 @@ class _PersonalPage extends State<PersonalPage> {
         return null;
       },
       decoration: InputDecoration(
+        // suffixIcon: StatefulBuilder(builder: (context, StateSetter setState){
+        //   return IconButton(
+        //     splashRadius: 17,
+        //     icon: Icon(
+        //       _passwordVisible
+        //           ? Icons.visibility
+        //           : Icons.visibility_off,
+        //       color: Colors.grey,
+        //       size: 20,
+        //     ),
+        //     onPressed: () {
+        //       setState(() {
+        //         _passwordVisible = !_passwordVisible;
+        //       });
+        //       (context as Element).markNeedsBuild();
+        //     },
+        //   );
+        // }),
         isDense: true,
         filled: true,
         fillColor: Colors.white,
@@ -438,22 +547,7 @@ class _PersonalPage extends State<PersonalPage> {
             ],
           ),
         ),
-        suffixIcon: IconButton(
-          splashRadius: 10,
-          icon: Icon(
-            _passwordVisible
-                ? Icons.visibility
-                : Icons.visibility_off,
-            color: Colors.grey,
-            size: 20,
-          ),
-          onPressed: () {
-            setState(() {
-              _passwordVisible = !_passwordVisible;
-              (context as Element).markNeedsBuild();
-            });
-          },
-        ),
+
       ),
       style: TextStyle(fontSize: 17, height: 1.2,
       ),

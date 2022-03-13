@@ -139,6 +139,7 @@ class _ChangePassword extends State<ChangePassword> {
           ),
         ),
         suffixIcon: IconButton(
+          splashRadius: 17,
           icon: Icon(
             _passwordVisible
                 ? Icons.visibility
@@ -217,6 +218,7 @@ class _ChangePassword extends State<ChangePassword> {
           ),
         ),
         suffixIcon: IconButton(
+          splashRadius: 17,
           icon: Icon(
             _passwordVisibleNew
                 ? Icons.visibility
@@ -294,6 +296,7 @@ class _ChangePassword extends State<ChangePassword> {
           ),
         ),
         suffixIcon: IconButton(
+          splashRadius: 17,
           icon: Icon(
             _passwordVisibleConfirm
                 ? Icons.visibility

@@ -11,6 +11,8 @@ int loadcell = 0;
 List<History> history= [];
 List<UserModel>? model;
 
+bool viewedHistory = false;
+
 int firstyear = selectedLastDate.year;
 int firstmonth = selectedLastDate.month;
 int firstday = selectedLastDate.day - 2;
@@ -26,5 +28,6 @@ class History{ //modal class for Person object
   int? year, month, day, sum;
   History({required this.year, required this.month, required this.day, required this.sum});
 }
+
 
 

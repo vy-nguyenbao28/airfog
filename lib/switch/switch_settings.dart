@@ -531,6 +531,7 @@ class _SwitchSettings extends State<SwitchSettings> {
                               focusColor: Colors.black,
                               errorText: _errorTextPassWifi,
                               suffixIcon: IconButton(
+                                splashRadius: 17,
                                 icon: Icon(
                                   _passwordVisible
                                       ? Icons.visibility

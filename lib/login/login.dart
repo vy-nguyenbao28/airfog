@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert' as cnv;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +29,7 @@ class _Login extends State<Login> {
   bool checkButton = false;
   bool checkPassFaild = false;
   bool checkAccountFaild = false;
+  bool checkSignInFaild = false;
 
   CollectionReference account = FirebaseFirestore.instance.collection('user');
 
@@ -249,6 +251,7 @@ class _Login extends State<Login> {
           ),
         ),
         suffixIcon: IconButton(
+          splashRadius: 17,
           icon: Icon(
             _passwordVisible
                 ? Icons.visibility
@@ -330,8 +333,9 @@ class _Login extends State<Login> {
       onPressed: () async {
         setState(() {
           checkButton = true;
-          checkAccountFaild = false;
           checkPassFaild = false;
+          checkAccountFaild = false;
+          checkSignInFaild = false;
         });
         if (_formKey.currentState!.validate()) {
           SignIn();
@@ -352,48 +356,49 @@ class _Login extends State<Login> {
   }
 
   Future<void> SignIn() async {
-    // showDialog(
-    //   context: context,
-    //   barrierDismissible: false,
-    //   builder: (BuildContext context) {
-    //     return Dialog(
-    //         child: new Padding(
-    //           padding: EdgeInsets.all(20),
-    //           child: Column(
-    //             mainAxisSize: MainAxisSize.min,
-    //             children: [
-    //               new CircularProgressIndicator(),
-    //               SizedBox(height: 20),
-    //               new Text("Đang đăng nhập..."),
-    //             ],
-    //           ),
-    //         )
-    //     );
-    //   },
-    // );
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+            child: new Padding(
+              padding: EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  new CircularProgressIndicator(),
+                  SizedBox(height: 20),
+                  new Text("Đang đăng nhập..."),
+                ],
+              ),
+            )
+        );
+      },
+    );
     try {
       final user = await FirebaseAuth.instance.signInWithEmailAndPassword(
           email: textAccount.text, password: textPass.text);
       if (user.user!.emailVerified) {
-        account.doc('${textAccount.text}').get().then((DocumentSnapshot documentSnapshot) {
-          setState(() {
-            id = documentSnapshot['api_key'].toString();
+        if (!checkPassFaild && !checkAccountFaild && !checkSignInFaild){
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (contex) => Home(),
+            ),
+          );
+          account.doc('${textAccount.text}').get().then((DocumentSnapshot documentSnapshot) {
+            setState(() {
+              id = documentSnapshot['api_key'].toString();
+            });
+            account.doc('${textAccount.text}').set({
+              'pass': '${textPass.text}',
+              'api_key': documentSnapshot['api_key'].toString(),
+              'name': user.user!.displayName
+            });
           });
-          account.doc('${textAccount.text}').set({
-            'pass': '${textPass.text}',
-            'api_key': documentSnapshot['api_key'].toString(),
-            'name': user.user!.displayName
-          });
-        });
-
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (contex) => Home(),
-          ),
-        );
-        if (checkBox){
-          SharedPreferences prefs = await SharedPreferences.getInstance();
-          prefs.setString('email', textAccount.text);
+          if (checkBox){
+            SharedPreferences prefs = await SharedPreferences.getInstance();
+            prefs.setString('email', textAccount.text);
+          }
         }
       }
       else {
@@ -419,26 +424,21 @@ class _Login extends State<Login> {
         setState(() {
           checkPassFaild = true;
         });
-      } else
-        setState(() {
-          checkPassFaild = false;
-          checkAccountFaild = false;
-        });
+      }
       if (e.message == 'There is no user record corresponding to this identifier. The user may have been deleted.') {
         setState(() {
           checkAccountFaild = true;
         });
-      } else
-        setState(() {
-          checkAccountFaild = false;
-          checkAccountFaild = false;
-        });
+      }
       if (e.message == 'We have blocked all requests from this device due to unusual activity. Try again later.') {
+        setState(() {
+          checkSignInFaild = true;
+        });
         showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
             title: Text("Ôi bạn ơi"),
-            content: Text('Lỗi đăng nhập'),
+            content: Text('Lỗi đăng nhập mất rồi. Vui lòng thử lại sau vài phút :('),
             actions: [
               TextButton(
                 onPressed: () {
@@ -450,6 +450,7 @@ class _Login extends State<Login> {
           ),
         );
       }
+      Navigator.of(context).pop();
     }
   }
 

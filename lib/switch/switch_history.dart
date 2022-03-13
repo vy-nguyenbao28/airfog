@@ -274,13 +274,17 @@ class _SwitchHistory extends State<SwitchHistory> {
   }
 
   void initState(){
-    searchHistory();
-    sortHistory();
     Timer.periodic(Duration(seconds: 2), (Timer t) => setState(() {
       setState(() {
         showHistory = true;
       });
     }));
+    if (!viewedHistory){
+      searchHistory();
+      setState(() {
+        viewedHistory = true;
+      });
+    }
     super.initState();
   }
 
@@ -292,7 +296,7 @@ class _SwitchHistory extends State<SwitchHistory> {
             children: [
               Container(
                 height: 40,
-                margin: EdgeInsets.all(5),
+                margin: EdgeInsets.only(top: 5),
                 padding: EdgeInsets.symmetric(vertical: 5, horizontal: 0),
                 decoration: BoxDecoration(
                     color: Colors.white,
@@ -332,23 +336,26 @@ class _SwitchHistory extends State<SwitchHistory> {
                   children: [
                     (showHistory)
                         ? (history.length != 0)
-                        ? Column(
-                      children: history.map((value){
-                        return SizedBox(
-                            height: int.parse(value.sum.toString()) * 115,
-                            child: ListView.builder(
-                              physics: NeverScrollableScrollPhysics(),
-                              padding: EdgeInsets.zero,
-                              scrollDirection: Axis.vertical,
-                              itemCount: value.sum,
-                              itemBuilder: (context, index) =>
-                                  HistoryCard(index, value.year!, value.month!, value.day!, int.parse(value.sum.toString())),
-                            )
-                        );
-                      }).toList(),
+                            ? Column(
+                                children: history.map((value){
+                                  return SizedBox(
+                                      height: int.parse(value.sum.toString()) * 115,
+                                      child: ListView.builder(
+                                        physics: NeverScrollableScrollPhysics(),
+                                        padding: EdgeInsets.zero,
+                                        scrollDirection: Axis.vertical,
+                                        itemCount: value.sum,
+                                        itemBuilder: (context, index) =>
+                                            HistoryCard(index, value.year!, value.month!, value.day!, int.parse(value.sum.toString())),
+                                      )
+                                  );
+                                }).toList(),
+                              )
+                            : Center(child: Text('Không có lịch sử', style: TextStyle(fontSize: 30), textAlign: TextAlign.center))
+                        : SizedBox(
+                      height: 200,
+                      child: Center(child: CircularProgressIndicator()),
                     )
-                        : Center(child: Text('Không có lịch sử', style: TextStyle(fontSize: 30), textAlign: TextAlign.center))
-                        : Center(child: CircularProgressIndicator()),
                   ],
                 ),
               )

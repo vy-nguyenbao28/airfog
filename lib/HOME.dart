@@ -42,8 +42,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   }
 
   void getDataHttp() async {
-    //var response = await Dio().getUri(Uri.http('192.168.16.2', '/getweighttemp', {'api_key': '$id'}));
-    var response = await Dio().getUri(Uri.http('61add905d228a9001703afe3.mockapi.io', '/api/vyii'));
+    var response = await Dio().getUri(Uri.http('192.168.16.2', '/getweighttemp', {'api_key': '$id'}));
+    //var response = await Dio().getUri(Uri.http('61add905d228a9001703afe3.mockapi.io', '/api/vyii'));
     if (response.statusCode == 200){
       List<dynamic> body = cnv.jsonDecode(response.data);
       model = body.map((dynamic item) => UserModel.fromJson(item)).cast<UserModel>().toList();

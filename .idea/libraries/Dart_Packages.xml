@@ -254,6 +254,13 @@
             </list>
           </value>
         </entry>
+        <entry key="flutter_slidable">
+          <value>
+            <list>
+              <option value="E:/flutter_windows_2.10.2-stable/flutter/.pub-cache/hosted/pub.dartlang.org/flutter_slidable-1.2.0/lib" />
+            </list>
+          </value>
+        </entry>
         <entry key="flutter_svg">
           <value>
             <list>
@@ -774,6 +781,7 @@
       <root url="file://E:/flutter_windows_2.10.2-stable/flutter/.pub-cache/hosted/pub.dartlang.org/flutter_inappwebview-5.3.2/lib" />
       <root url="file://E:/flutter_windows_2.10.2-stable/flutter/.pub-cache/hosted/pub.dartlang.org/flutter_plugin_android_lifecycle-2.0.5/lib" />
       <root url="file://E:/flutter_windows_2.10.2-stable/flutter/.pub-cache/hosted/pub.dartlang.org/flutter_ringtone_player-3.1.1/lib" />
+      <root url="file://E:/flutter_windows_2.10.2-stable/flutter/.pub-cache/hosted/pub.dartlang.org/flutter_slidable-1.2.0/lib" />
       <root url="file://E:/flutter_windows_2.10.2-stable/flutter/.pub-cache/hosted/pub.dartlang.org/flutter_svg-1.0.0/lib" />
       <root url="file://E:/flutter_windows_2.10.2-stable/flutter/.pub-cache/hosted/pub.dartlang.org/flutter_switch-0.3.2/lib" />
       <root url="file://E:/flutter_windows_2.10.2-stable/flutter/.pub-cache/hosted/pub.dartlang.org/http-0.13.4/lib" />

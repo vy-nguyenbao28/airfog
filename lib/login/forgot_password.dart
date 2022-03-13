@@ -206,7 +206,7 @@ class _ForgotPassword extends State<ForgotPassword> {
                     children: [
                       Image.asset('assets/checked.png', width: 50),
                       SizedBox(height: 15),
-                      new Text("Mật khẩu mới đã được gửi vào mail"),
+                      new Text("Vui lòng kiểm tra email"),
                       SizedBox(height: 5),
                       TextButton(
                         child: Text('Xác nhận', style: TextStyle(fontSize: 18),),
