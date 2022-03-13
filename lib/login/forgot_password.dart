@@ -175,18 +175,27 @@ class _ForgotPassword extends State<ForgotPassword> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return Dialog(
-            child: new Padding(
-              padding: EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  new CircularProgressIndicator(),
-                  SizedBox(height: 20),
-                  new Text("Đang gửi yêu cầu..."),
-                ],
+        return Container(
+          width: 100,
+          height: 100,
+          child: Dialog(
+              insetPadding: EdgeInsets.symmetric(horizontal: 120),
+              clipBehavior: Clip.antiAliasWithSaveLayer,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12.0),
               ),
-            )
+              child: Container(
+                padding: EdgeInsets.fromLTRB(0,20,0,20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 20),
+                    Text("Đang gửi yêu cầu...",style: TextStyle(fontSize: 15)),
+                  ],
+                ),
+              )
+          ),
         );
       },
     );

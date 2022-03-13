@@ -132,6 +132,7 @@ flutter:
     - assets/saveinfo.png
     - assets/newpass.png
     - assets/medical-history.png
+    - assets/startbutton.png
     - assets/ava2.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

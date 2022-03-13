@@ -146,7 +146,7 @@ class _SwitchSettings extends State<SwitchSettings> {
         title: CheckCard('assets/water-pipe.png','Điều chỉnh lưu lượng'),
         children:<Widget> [
           StreamBuilder<DocumentSnapshot>(
-              stream: machine.doc('user').collection('settings').doc('settings').snapshots(),
+              stream: machine.doc('program').collection('settings').doc('settings').snapshots(),
               builder: (BuildContext context,
                   AsyncSnapshot<DocumentSnapshot> snapshot) {
                 if (!snapshot.hasData) {
@@ -201,8 +201,8 @@ class _SwitchSettings extends State<SwitchSettings> {
                                 });
                                 if(textFlow.text == ''){
                                   notification('Sử dụng giá trị mặc định');
-                                  machine.doc('user').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
-                                    machine.doc('user').collection('settings').doc('settings').set({
+                                  machine.doc('program').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
+                                    machine.doc('program').collection('settings').doc('settings').set({
                                       'flow': '33',
                                       'temp': documentSnapshot['temp'].toString()
                                     });
@@ -212,8 +212,8 @@ class _SwitchSettings extends State<SwitchSettings> {
                                 else if (textFlow.text != ''){
                                   if (double.tryParse(textFlow.text) != null) {
                                     notification('Đã lưu giá trị');
-                                    machine.doc('user').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
-                                      machine.doc('user').collection('settings').doc('settings').set({
+                                    machine.doc('program').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
+                                      machine.doc('program').collection('settings').doc('settings').set({
                                         'flow': textFlow.text,
                                         'temp': documentSnapshot['temp'].toString()
                                       });
@@ -242,7 +242,7 @@ class _SwitchSettings extends State<SwitchSettings> {
         title:  CheckCard('assets/temp.png','Thiết lập mức nhiệt độ'),
         children: [
           StreamBuilder<DocumentSnapshot>(
-              stream: machine.doc('user').collection('settings').doc('settings').snapshots(),
+              stream: machine.doc('program').collection('settings').doc('settings').snapshots(),
               builder: (BuildContext context,
                   AsyncSnapshot<DocumentSnapshot> snapshot) {
                 if (!snapshot.hasData) {
@@ -298,8 +298,8 @@ class _SwitchSettings extends State<SwitchSettings> {
                                 });
                                 if(textTemp.text == ''){
                                   notification('Sử dụng giá trị mặc định');
-                                  machine.doc('user').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
-                                    machine.doc('user').collection('settings').doc('settings').set({
+                                  machine.doc('program').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
+                                    machine.doc('program').collection('settings').doc('settings').set({
                                       'flow': documentSnapshot['flow'].toString(),
                                       'temp': '80'
                                     });

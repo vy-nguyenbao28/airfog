@@ -616,18 +616,27 @@ class _Registration extends State<Registration> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return Dialog(
-            child: new Padding(
-              padding: EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  new CircularProgressIndicator(),
-                  SizedBox(height: 20),
-                  new Text("Đang đăng ký..."),
-                ],
+        return Container(
+          width: 100,
+          height: 100,
+          child: Dialog(
+              insetPadding: EdgeInsets.symmetric(horizontal: 120),
+              clipBehavior: Clip.antiAliasWithSaveLayer,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12.0),
               ),
-            )
+              child: Container(
+                padding: EdgeInsets.fromLTRB(0,20,0,20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 20),
+                    Text("Đang đăng ký...",style: TextStyle(fontSize: 15)),
+                  ],
+                ),
+              )
+          ),
         );
       },
     );
@@ -649,6 +658,7 @@ class _Registration extends State<Registration> {
           barrierDismissible: false,
           builder: (BuildContext context) {
             return Dialog(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
                 child: new Padding(
                   padding: EdgeInsets.fromLTRB(0,15,0,3),
                   child: Column(
@@ -677,6 +687,7 @@ class _Registration extends State<Registration> {
         showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
             title:
             Text('Ôi bạn ơi !!!'),
             content: Text('Email này đã được sử dụng cho tài khoản khác'),

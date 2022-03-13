@@ -492,24 +492,6 @@ class _PersonalPage extends State<PersonalPage> {
         return null;
       },
       decoration: InputDecoration(
-        // suffixIcon: StatefulBuilder(builder: (context, StateSetter setState){
-        //   return IconButton(
-        //     splashRadius: 17,
-        //     icon: Icon(
-        //       _passwordVisible
-        //           ? Icons.visibility
-        //           : Icons.visibility_off,
-        //       color: Colors.grey,
-        //       size: 20,
-        //     ),
-        //     onPressed: () {
-        //       setState(() {
-        //         _passwordVisible = !_passwordVisible;
-        //       });
-        //       (context as Element).markNeedsBuild();
-        //     },
-        //   );
-        // }),
         isDense: true,
         filled: true,
         fillColor: Colors.white,

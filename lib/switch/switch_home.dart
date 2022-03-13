@@ -39,7 +39,6 @@ class _SwitchHome extends State<SwitchHome>
   int checkFlow = 0;
 
   bool _isConnected = false;
-  bool checkStatus = false;
   bool showProgram = false;
 
   Timer? timerRefresh;
@@ -110,37 +109,20 @@ class _SwitchHome extends State<SwitchHome>
     Dio().getUri(Uri.http('192.168.16.2','/$api',dataSend));
   }
 
-  Future<void> getTime() async {
-    machine.doc('program').collection('settings').doc('selectedCard').get().then((DocumentSnapshot documentSnapshot) {
-      selectedCard = int.parse(documentSnapshot['selectedCard'].toString());
-      machine.doc('program').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
-        checkTemp = int.parse(documentSnapshot['temp'].toString());
-        checkFlow = int.parse(documentSnapshot['flow'].toString());
-        machine.doc('program').collection('program').doc('countuser').get().then((DocumentSnapshot documentSnapshot) {
-          machine.doc('program').collection('program').doc('${int.parse(documentSnapshot['countuser'].toString())- selectedCard - 1}').get().then((DocumentSnapshot documentSnapshot) {
-            int speed = int.parse(documentSnapshot['speed'].toString());
-            int volume = int.parse(documentSnapshot['volume'].toString());
-            Roomname = documentSnapshot['roomname'].toString();
-            timePhun = speed * volume * 60 ~/ checkFlow;
-          });
-        });
+  void getTime(int index)  {
+    machine.doc('program').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
+      checkTemp = int.parse(documentSnapshot['temp'].toString());
+      checkFlow = int.parse(documentSnapshot['flow'].toString());
+      machine.doc('program').collection('program').doc('${counter- index - 1}').get().then((DocumentSnapshot documentSnapshot) {
+        int speed = int.parse(documentSnapshot['speed'].toString());
+        int volume = int.parse(documentSnapshot['volume'].toString());
+        Roomname = documentSnapshot['roomname'].toString();
+        timePhun = speed * volume * 60 ~/ checkFlow;
       });
     });
   }
 
   //Linh tinh
-  void getSelectedCard() {
-    machine.doc('user').collection('settings').doc('selectedCard').get().then((DocumentSnapshot documentSnapshot) {
-      selectedCard = int.parse(documentSnapshot['selectedCard'].toString());
-    });
-  }
-  String? get _errorTextUser {
-    final text = textUser.value.text;
-    if (text.isEmpty) {
-      return '*Bắt buộc';
-    }
-    return null;
-  }
   String? get _errorTextRoom {
     final text = textRoom.value.text;
     if (text.isEmpty) {
@@ -178,7 +160,7 @@ class _SwitchHome extends State<SwitchHome>
         textAlign: TextAlign.center,
       ),
       backgroundColor: Color(0xff898989),
-      duration: Duration(seconds: 1),
+      duration: Duration(milliseconds: 1500),
       shape: StadiumBorder(),
       margin: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
       behavior: SnackBarBehavior.floating,
@@ -188,7 +170,7 @@ class _SwitchHome extends State<SwitchHome>
 
   @override
   void initState() {
-    Timer.periodic(Duration(seconds: 2), (Timer t) => setState(() {
+    Timer.periodic(Duration(milliseconds: 1500), (Timer t) => setState(() {
       setState(() {
         showProgram = true;
       });
@@ -224,12 +206,6 @@ class _SwitchHome extends State<SwitchHome>
                     style:
                     TextStyle(fontWeight: FontWeight.w700, fontSize: 25)),
                 addUserButton(),
-                IconButton(
-                  icon: Icon(Icons.send),
-                  onPressed: (){
-                    getCounter();
-                  },
-                ),
               ],
             )),
         SizedBox(
@@ -272,18 +248,7 @@ class _SwitchHome extends State<SwitchHome>
       child: Icon(Icons.add, size: 30, color: Colors.white),
       onPressed: () {
         if (_isConnected == false){
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: const Text('Không có kết nối Internet !!!',
-              style: TextStyle(fontSize: 16),
-              textAlign: TextAlign.center,
-            ),
-            backgroundColor: Color(0xff898989),
-            duration: Duration(seconds: 1),
-            shape: StadiumBorder(),
-            margin: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-            behavior: SnackBarBehavior.floating,
-            elevation: 0,
-          ));
+          notification('Không có kết nối Internet !!!');
         }
         else if (_isConnected == true){
           double speed = 0;
@@ -437,18 +402,7 @@ class _SwitchHome extends State<SwitchHome>
       child: Icon(Icons.edit_outlined, size: 30, color: Color(0xffDF0029)),
       onPressed: () {
         if (_isConnected == false){
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: const Text('Không có kết nối Internet !!!',
-              style: TextStyle(fontSize: 16),
-              textAlign: TextAlign.center,
-            ),
-            backgroundColor: Color(0xff898989),
-            duration: Duration(seconds: 1),
-            shape: StadiumBorder(),
-            margin: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-            behavior: SnackBarBehavior.floating,
-            elevation: 0,
-          ));
+          notification('Không có kết nối Internet !!!');
         }
         else if (_isConnected == true){
           textVolume.text = volume;
@@ -591,13 +545,14 @@ class _SwitchHome extends State<SwitchHome>
 
   Widget valueCard() {
     final double sliderWidth = MediaQuery.of(context).size.width;
-    getTime();
     return Container(
-        margin: EdgeInsets.only(right: 20, left: 20, top: 0),
+        margin: EdgeInsets.only(right: 20, left: 20, top: 8),
         padding: EdgeInsets.symmetric(vertical: 12, horizontal: 10),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.only(
               bottomLeft: Radius.circular(10),
+              topLeft: Radius.circular(10),
+              topRight: Radius.circular(10),
               bottomRight: Radius.circular(10)),
           boxShadow: [BoxShadow(blurRadius: 10, color: AppColors.lighterGray)],
           color: Colors.white,
@@ -607,7 +562,7 @@ class _SwitchHome extends State<SwitchHome>
             Padding(
                 padding: EdgeInsets.fromLTRB(10, 2, 10, 2),
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     SizedBox(
@@ -660,12 +615,15 @@ class _SwitchHome extends State<SwitchHome>
                         ],
                       ),
                     ),
-                    Container(height: 60, width: 1.5, color: AppColors.primary),
+                    Container(height: 80, width: 1.5, margin: EdgeInsets.only(top: 15), color: Colors.grey),
                     SizedBox(
                       width: (sliderWidth / 2) * 0.7,
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
+                          Text('Nhiệt độ',
+                              style: TextStyle(
+                                  fontSize: 15, color: Colors.red,fontWeight: FontWeight.w400)),
                           SizedBox(height: 7),
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -675,266 +633,21 @@ class _SwitchHome extends State<SwitchHome>
                               (model == null || !_isConnected)
                                   ? Text('??',
                                   style: TextStyle(
-                                      fontSize: 50, color: Colors.grey,fontWeight: FontWeight.w400))
+                                      fontSize: 65, color: Colors.grey,fontWeight: FontWeight.w400))
                                   : Container(),
                               (model != null && _isConnected)
                                   ? Text('${model![0].temp.toString()}',
                                   style: TextStyle(
-                                      fontSize: 50, color: Colors.red,fontWeight: FontWeight.w400))
+                                      fontSize: 65, color: Colors.red,fontWeight: FontWeight.w400))
                                   : Container(),
                               Text('o',
                                   style: TextStyle(
                                       fontSize: 13, color: Colors.red,fontWeight: FontWeight.w500)),
                               Text('C',
                                   style: TextStyle(
-                                      fontSize: 20, color: Colors.red,fontWeight: FontWeight.w400)),
+                                      fontSize: 28, color: Colors.red,fontWeight: FontWeight.w400)),
                             ],
                           ),
-                          RawMaterialButton(
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(5)),
-                              elevation: 2.0,
-                              fillColor: AppColors.tertiary,
-                              onPressed: () {
-                                if (!_isConnected){
-                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                    content: const Text('Không có kết nối Internet !!!',
-                                      style: TextStyle(fontSize: 16),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                    backgroundColor: Color(0xff898989),
-                                    duration: Duration(seconds: 1),
-                                    shape: StadiumBorder(),
-                                    margin: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                                    behavior: SnackBarBehavior.floating,
-                                    elevation: 0,
-                                  ));
-                                }
-                                machine.doc('user').collection('user').doc('countuser').get().then((DocumentSnapshot documentSnapshot) {
-                                  if (documentSnapshot['countuser'].toString() == '0'){
-                                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                      content: const Text('Không có chương trình thực thi',
-                                        style: TextStyle(fontSize: 16),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      backgroundColor: Color(0xff898989),
-                                      duration: Duration(seconds: 1),
-                                      shape: StadiumBorder(),
-                                      margin: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                                      behavior: SnackBarBehavior.floating,
-                                      elevation: 0,
-                                    ));
-                                  }
-                                  if (_isConnected && (model == null)){
-                                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                      content: const Text('Không có kết nối với máy !!!',
-                                        style: TextStyle(fontSize: 16),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      backgroundColor: Color(0xff898989),
-                                      duration: Duration(seconds: 1),
-                                      shape: StadiumBorder(),
-                                      margin: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                                      behavior: SnackBarBehavior.floating,
-                                      elevation: 0,
-                                    ));
-                                  }
-                                  else if (documentSnapshot['countuser'].toString() != '0' &&_isConnected == true && model != null){
-                                    if (((timePhun * checkFlow) / 60 - loadcell > 0) || temp >= checkTemp){
-                                      setState(() {
-                                        checkStatus = true;
-                                      });
-                                    }else if ((timePhun * checkFlow) / 60 - loadcell < 0 && (temp<checkTemp)){
-                                      checkStatus = false;
-                                      _startTimer();
-                                    };
-                                    showDialog(
-                                        barrierDismissible: false,
-                                        context: context,
-                                        builder: (BuildContext context) => SimpleDialog(
-                                          contentPadding: EdgeInsets.only(left: 10, right: 10, bottom: 15),
-                                          titlePadding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
-                                          title: Column(
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              children: [
-                                                !checkStatus
-                                                    ? Image.asset('assets/checked.png',width: 60)
-                                                    : Image.asset('assets/error.png',width: 60),
-                                                SizedBox(height: 10),
-                                                !checkStatus
-                                                    ? Text('Tiến hành phun sau',
-                                                    style: TextStyle(color: AppColors.tertiary, fontSize: 20))
-                                                    : Text('Phát hiện lỗi',
-                                                    style: TextStyle(color: Colors.red, fontSize: 20)),
-                                                Container(
-                                                  margin: EdgeInsets.fromLTRB(30,10,30,0),
-                                                  height: 1.5,
-                                                  color: Color(0xffDDDDDD),
-                                                )
-                                              ]),
-                                          children: <Widget>[
-                                            Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: <Widget>[
-                                                (!checkStatus)
-                                                    ? StreamBuilder<int>(
-                                                    stream: _events!.stream,
-                                                    builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
-                                                      SchedulerBinding.instance!.addPostFrameCallback((_) {
-                                                        if (secondsPassed == 0 && !checkStatus) {
-                                                          //FlutterRingtonePlayer.playNotfication();
-                                                          print('time = $timePhun');
-                                                          machine.doc('user').collection('user').doc('${counter - selectedCard - 1}').get().then((DocumentSnapshot documentSnapshot) {
-                                                            int speed = int.parse(documentSnapshot['speed'].toString());
-                                                            machine.doc('user').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
-                                                              makeDio('start',{'api_key': '$id',
-                                                                'speed':'$speed',
-                                                                'flow':'${documentSnapshot['flow'].toString()}',
-                                                                'time':'$timePhun',
-                                                              });
-                                                            });
-                                                          });
-                                                          Navigator.pop(context);
-                                                          Navigator.push(
-                                                            context,
-                                                            MaterialPageRoute(builder: (context) => TimerApp()),
-                                                          );
-                                                          timer!.cancel;
-                                                        };
-                                                      });
-                                                      return timeApp();
-                                                    })
-                                                    : SizedBox(width: 0),
-                                                statusCard(timePhun,checkFlow, checkTemp),
-                                                SizedBox(height: 10),
-                                                (checkStatus)
-                                                    ? Center(
-                                                  child:ClipRRect(
-                                                    borderRadius: BorderRadius.circular(25),
-                                                    child: Material(
-                                                      child: InkWell(
-                                                        onTap: () {
-                                                          Navigator.pop(context);
-                                                        },
-                                                        child: Container(
-                                                          width: 200,
-                                                          height: 50,
-                                                          decoration: BoxDecoration(
-                                                              borderRadius: BorderRadius.circular(25),
-                                                              color: Colors.red
-                                                          ),
-                                                          child: Center(
-                                                              child: Text(
-                                                                'Xác nhận',
-                                                                style: TextStyle(
-                                                                    color: Colors.white,
-                                                                    fontSize: 16,
-                                                                    fontWeight: FontWeight.bold),
-                                                              )),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                )
-                                                    : Row(
-                                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                                  children: <Widget>[
-                                                    ClipRRect(
-                                                      borderRadius: BorderRadius.circular(25),
-                                                      child: Material(
-                                                        child: InkWell(
-                                                          onTap: () {
-                                                            print('time = $timePhun');
-                                                            machine.doc('user').collection('user').doc('${counter - selectedCard - 1}').get().then((DocumentSnapshot documentSnapshot) {
-                                                              int speed = int.parse(documentSnapshot['speed'].toString());
-                                                              machine.doc('user').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
-                                                                makeDio('start',{'api_key': '$id',
-                                                                  'speed':'$speed',
-                                                                  'flow':'${documentSnapshot['flow'].toString()}',
-                                                                  'time':'$timePhun',
-                                                                });
-                                                              });
-                                                            });
-                                                            timer!.cancel;
-                                                            Navigator.pop(context);
-                                                            Navigator.push(
-                                                              context,
-                                                              MaterialPageRoute(builder: (context) => TimerApp()),
-                                                            );
-                                                          },
-                                                          child: Container(
-                                                            width: 100,
-                                                            height: 50,
-                                                            decoration: BoxDecoration(
-                                                                borderRadius: BorderRadius.circular(25),
-                                                                color: AppColors.tertiary
-                                                            ),
-                                                            child: Center(
-                                                                child: Text(
-                                                                  'Bắt đầu',
-                                                                  style: TextStyle(
-                                                                      color: Colors.white,
-                                                                      fontSize: 16,
-                                                                      fontWeight: FontWeight.bold),
-                                                                )),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    ClipRRect(
-                                                      borderRadius: BorderRadius.circular(25),
-                                                      child: Material(
-                                                        child: InkWell(
-                                                          onTap: () {
-                                                            timer!.cancel;
-                                                            Navigator.pop(context);
-                                                          },
-                                                          child: Container(
-                                                            width: 100,
-                                                            height: 50,
-                                                            decoration: BoxDecoration(
-                                                                borderRadius: BorderRadius.circular(25),
-                                                                color: AppColors.tertiary
-                                                            ),
-                                                            child: Center(
-                                                                child: Text(
-                                                                  'Hủy bỏ',
-                                                                  style: TextStyle(
-                                                                      color: Colors.white,
-                                                                      fontSize: 16,
-                                                                      fontWeight: FontWeight.bold),
-                                                                )),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                )
-                                              ],
-                                            )
-                                          ],
-                                        ));
-                                  }
-                                });
-                              },
-                              child: Padding(
-                                  padding: EdgeInsets.all(5),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Icon(
-                                        Icons.not_started,
-                                        color: Colors.white,
-                                        size: 26,
-                                      ),
-                                      Text(" Bắt đầu",
-                                          style: TextStyle(
-                                            fontSize: 19,
-                                            color: Colors.white,
-                                          )),
-                                    ],
-                                  ))),
                         ],
                       ),
                     ),
@@ -1018,9 +731,12 @@ class _SwitchHome extends State<SwitchHome>
                         builder: (BuildContext context,
                             AsyncSnapshot<DocumentSnapshot> snapshot) {
                           if (!snapshot.hasData) {
-                            return Center(
-                                child: Text('Đang tải...',
-                                    style: TextStyle(fontSize: 15)));
+                            return SizedBox(
+                              height: 100,
+                              child: Center(
+                                  child: Text('Đang tải...',
+                                      style: TextStyle(fontSize: 15))),
+                            );
                           }
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1057,94 +773,17 @@ class _SwitchHome extends State<SwitchHome>
                   flex: 2,
                 ),
                 RawMaterialButton(
-                  elevation: 3,
+                  elevation: 2,
                   onPressed: () {
-                    if (_isConnected == false){
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: const Text('Không có kết nối Internet !!!',
-                          style: TextStyle(fontSize: 16),
-                          textAlign: TextAlign.center,
-                        ),
-                        backgroundColor: Color(0xff898989),
-                        duration: Duration(seconds: 1),
-                        shape: StadiumBorder(),
-                        margin: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                        behavior: SnackBarBehavior.floating,
-                        elevation: 0,
-                      ));
+                    getTime(index);
+                    if (!_isConnected){
+                      notification('Không có kết nối Internet !!!');
                     }
-                    else if (_isConnected == true){
-                      showDialog(
-                          barrierDismissible: false,
-                          context: context,
-                          builder: (BuildContext context) => CupertinoAlertDialog(
-                            title: Text('Xóa chương trình',
-                                style: TextStyle(
-                                    fontSize: 23, fontWeight: FontWeight.w500)),
-                            content:  Padding(
-                              padding: EdgeInsets.fromLTRB(0,7,0,7),
-                              child:  Text(
-                                  'Bạn có chắc chắn muốn xóa chương trình không?',
-                                  style: TextStyle(
-                                      fontSize: 16, fontWeight: FontWeight.w400)),
-                            ),
-                            actions: [
-                              CupertinoDialogAction(
-                                  child: TextButton(
-                                    child: Text('Có',
-                                        style: TextStyle(
-                                            fontSize: 23,
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.red)),
-                                    onPressed: () {
-                                      // machine.doc('user').collection('user').doc('countuser').get().then((DocumentSnapshot documentSnapshot) {
-                                      //   int counter = int.parse(documentSnapshot['countuser'].toString());
-                                      //   if (index < (counter - 1) && index > 0) {
-                                      //     machine.doc('user').collection('user').doc('countuser').set({
-                                      //       'countuser': '0'
-                                      //     });
-                                      //     Future.delayed(new Duration(milliseconds: 50), () {
-                                      //       for (int i = counter - 1; i >=counter - index ; i--) {
-                                      //         getDataFireStore((i).toString(), i - 1);
-                                      //       }
-                                      //       machine.doc('user').collection('user').doc('${counter - 1}').delete();
-                                      //       machine.doc('user').collection('user').doc('countuser').set({
-                                      //         'countuser': '${counter-1}'
-                                      //       });
-                                      //     });
-                                      //   }
-                                      //   else if (index == 0) {
-                                      //     machine.doc('user').collection('user').doc('${counter - 1}').delete();
-                                      //     machine.doc('user').collection('user').doc('countuser').set({
-                                      //       'countuser': '${counter-1}'
-                                      //     });
-                                      //   }
-                                      //   else if (index == (counter - 1)) {
-                                      //     machine.doc('user').collection('user').doc('0').delete();
-                                      //     machine.doc('user').collection('user').doc('countuser').set({
-                                      //       'countuser': '${counter-1}'
-                                      //     });
-                                      //     for (int i = 1; i <= counter - 1; i++) {
-                                      //       getDataFireStore((i).toString(), i - 1);
-                                      //     }
-                                      //   }
-                                      // });
-                                      // Navigator.pop(context);
-                                    },
-                                  )),
-                              CupertinoDialogAction(
-                                  child: TextButton(
-                                    child: Text('Không',
-                                        style: TextStyle(
-                                            fontSize: 23,
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.blue)),
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                    },
-                                  )),
-                            ],
-                          ));
+                    if (_isConnected && model == null){
+                      notification('Không có kết nối với máy');
+                    }
+                    if (_isConnected && model != null){
+                      StartProgram(counter - index - 1);
                     }
                   },
                   fillColor: AppColors.tertiary,
@@ -1157,8 +796,219 @@ class _SwitchHome extends State<SwitchHome>
     );
   }
 
-  Widget timeApp() {
-    getTime();
+  void StartProgram(int index) {
+    bool checkStatus = false;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Container(
+          width: 100,
+          height: 100,
+          child: Dialog(
+              insetPadding: EdgeInsets.symmetric(horizontal: 120),
+              clipBehavior: Clip.antiAliasWithSaveLayer,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12.0),
+              ),
+              child: Container(
+                padding: EdgeInsets.fromLTRB(0,20,0,20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 20),
+                    Text("Đang kiểm tra còi...",style: TextStyle(fontSize: 15)),
+                  ],
+                ),
+              )
+          ),
+        );
+      },
+    );
+    Future.delayed(Duration(seconds: 5), () async {
+      Navigator.of(context).pop();
+      if (((timePhun * checkFlow) / 60 - loadcell > 0) || temp >= checkTemp){
+        checkStatus = true;
+      }
+      if ((timePhun * checkFlow) / 60 - loadcell < 0 && (temp < checkTemp)){
+        checkStatus = false;
+      };
+      if (!checkStatus){
+        _startTimer();
+      }
+      showDialog(
+          barrierDismissible: false,
+          context: context,
+          builder: (BuildContext context) => StatefulBuilder(builder: (context, StateSetter setState){
+            return SimpleDialog(
+              contentPadding: EdgeInsets.only(left: 10, right: 10, bottom: 15),
+              titlePadding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
+              title: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    !checkStatus
+                        ? Image.asset('assets/checked.png',width: 60)
+                        : Image.asset('assets/error.png',width: 60),
+                    SizedBox(height: 10),
+                    !checkStatus
+                        ? Text('Tiến hành phun sau',
+                        style: TextStyle(color: AppColors.tertiary, fontSize: 20))
+                        : Text('Phát hiện lỗi',
+                        style: TextStyle(color: Colors.red, fontSize: 20)),
+                    Container(
+                      margin: EdgeInsets.fromLTRB(30,10,30,0),
+                      height: 1.5,
+                      color: Color(0xffDDDDDD),
+                    )
+                  ]),
+              children: <Widget>[
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    (!checkStatus)
+                        ? StreamBuilder<int>(
+                        stream: _events!.stream,
+                        builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
+                          SchedulerBinding.instance!.addPostFrameCallback((_) {
+                            if (secondsPassed == 0 && !checkStatus) {
+                              //FlutterRingtonePlayer.playNotfication();
+                              machine.doc('program').collection('program').doc('${counter - index - 1}').get().then((DocumentSnapshot documentSnapshot) {
+                                int speed = int.parse(documentSnapshot['speed'].toString());
+                                machine.doc('program').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
+                                  makeDio('start',{'api_key': '$id',
+                                    'speed':'$speed',
+                                    'flow':'${documentSnapshot['flow'].toString()}',
+                                    'time':'$timePhun',
+                                  });
+                                });
+                              });
+                              Navigator.pop(context);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => TimerApp()),
+                              );
+                              timer!.cancel;
+                            };
+                          });
+                          return timeApp(counter - index - 1, checkStatus);
+                        })
+                        : Container(),
+                    statusCard(timePhun,checkFlow, checkTemp),
+                    SizedBox(height: 10),
+                    (checkStatus)
+                        ? Center(
+                      child:ClipRRect(
+                        borderRadius: BorderRadius.circular(25),
+                        child: Material(
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.pop(context);
+                              timer!.cancel();
+                            },
+                            child: Container(
+                              width: 200,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(25),
+                                  color: Colors.red
+                              ),
+                              child: Center(
+                                  child: Text(
+                                    'Xác nhận',
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold),
+                                  )),
+                            ),
+                          ),
+                        ),
+                      ),
+                    )
+                        : Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: <Widget>[
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(25),
+                          child: Material(
+                            child: InkWell(
+                              onTap: () {
+                                machine.doc('program').collection('program').doc('${counter - index - 1}').get().then((DocumentSnapshot documentSnapshot) {
+                                  int speed = int.parse(documentSnapshot['speed'].toString());
+                                  machine.doc('program').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
+                                    makeDio('start',{'api_key': '$id',
+                                      'speed':'$speed',
+                                      'flow':'${documentSnapshot['flow'].toString()}',
+                                      'time':'$timePhun',
+                                    });
+                                  });
+                                });
+                                timer!.cancel;
+                                Navigator.pop(context);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => TimerApp()),
+                                );
+                              },
+                              child: Container(
+                                width: 100,
+                                height: 50,
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(25),
+                                    color: AppColors.tertiary
+                                ),
+                                child: Center(
+                                    child: Text(
+                                      'Bắt đầu',
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold),
+                                    )),
+                              ),
+                            ),
+                          ),
+                        ),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(25),
+                          child: Material(
+                            child: InkWell(
+                              onTap: () {
+                                timer!.cancel;
+                                Navigator.pop(context);
+                              },
+                              child: Container(
+                                width: 100,
+                                height: 50,
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(25),
+                                    color: AppColors.tertiary
+                                ),
+                                child: Center(
+                                    child: Text(
+                                      'Hủy bỏ',
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold),
+                                    )),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  ],
+                )
+              ],
+            );
+          }),
+      );
+    });
+  }
+
+  Widget timeApp(int index, bool checkStatus) {
     int seconds = timePhun % 60;
     int minutes = (timePhun % (3600)) ~/ 60;
     int hours = timePhun ~/ (3600);
@@ -1186,13 +1036,7 @@ class _SwitchHome extends State<SwitchHome>
                         ),
                         (secondsPassed>19) ? SizedBox(width: 25) : SizedBox(width: 0),
                         (secondsPassed>19)
-                          ?  SizedBox(
-                            height: 23,
-                            width: 23,
-                            child: new CircularProgressIndicator(
-                            value: null,
-                            strokeWidth: 3,
-                            ),
+                          ?  SizedBox(height: 23, width: 23, child: CircularProgressIndicator(),
                           )
                           : Text('${hours.toString().padLeft(2, '0')}:'
                                  '${minutes.toString().padLeft(2, '0')}:'
@@ -1217,11 +1061,11 @@ class _SwitchHome extends State<SwitchHome>
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             ((timePhun * checkFlow) / 60 - loadcell <= 0)
-                ? Text('Mức hóa chất: Đủ',
+                ? Text('Mức hóa chất: Cho phép',
               style: TextStyle(fontSize: 18, color: AppColors.tertiary),)
                 : Text('Mức hóa chất: Thiếu ${((timePhun * 33) / 60 - loadcell).toInt()} ml ',
               style: TextStyle(fontSize: 18, color: Colors.red),),
-            (temp<checkTemp)
+            (temp < checkTemp)
                 ? Text('Nhiệt độ động cơ: Cho phép',
               style: TextStyle(fontSize: 18, color: AppColors.tertiary),)
                 : Text('Nhiệt độ động cơ: Quá tải',
@@ -1282,5 +1126,80 @@ class _SwitchHome extends State<SwitchHome>
           ],
         )
     );
+  }
+
+  void deleteProgram(){
+    showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (BuildContext context) => CupertinoAlertDialog(
+          title: Text('Xóa chương trình',
+              style: TextStyle(
+                  fontSize: 23, fontWeight: FontWeight.w500)),
+          content:  Padding(
+            padding: EdgeInsets.fromLTRB(0,7,0,7),
+            child:  Text(
+                'Bạn có chắc chắn muốn xóa chương trình không?',
+                style: TextStyle(
+                    fontSize: 16, fontWeight: FontWeight.w400)),
+          ),
+          actions: [
+            CupertinoDialogAction(
+                child: TextButton(
+                  child: Text('Có',
+                      style: TextStyle(
+                          fontSize: 23,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.red)),
+                  onPressed: () {
+
+                    // machine.doc('user').collection('user').doc('countuser').get().then((DocumentSnapshot documentSnapshot) {
+                    //   int counter = int.parse(documentSnapshot['countuser'].toString());
+                    //   if (index < (counter - 1) && index > 0) {
+                    //     machine.doc('user').collection('user').doc('countuser').set({
+                    //       'countuser': '0'
+                    //     });
+                    //     Future.delayed(new Duration(milliseconds: 50), () {
+                    //       for (int i = counter - 1; i >=counter - index ; i--) {
+                    //         getDataFireStore((i).toString(), i - 1);
+                    //       }
+                    //       machine.doc('user').collection('user').doc('${counter - 1}').delete();
+                    //       machine.doc('user').collection('user').doc('countuser').set({
+                    //         'countuser': '${counter-1}'
+                    //       });
+                    //     });
+                    //   }
+                    //   else if (index == 0) {
+                    //     machine.doc('user').collection('user').doc('${counter - 1}').delete();
+                    //     machine.doc('user').collection('user').doc('countuser').set({
+                    //       'countuser': '${counter-1}'
+                    //     });
+                    //   }
+                    //   else if (index == (counter - 1)) {
+                    //     machine.doc('user').collection('user').doc('0').delete();
+                    //     machine.doc('user').collection('user').doc('countuser').set({
+                    //       'countuser': '${counter-1}'
+                    //     });
+                    //     for (int i = 1; i <= counter - 1; i++) {
+                    //       getDataFireStore((i).toString(), i - 1);
+                    //     }
+                    //   }
+                    // });
+                    // Navigator.pop(context);
+                  },
+                )),
+            CupertinoDialogAction(
+                child: TextButton(
+                  child: Text('Không',
+                      style: TextStyle(
+                          fontSize: 23,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.blue)),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                )),
+          ],
+        ));
   }
 }
