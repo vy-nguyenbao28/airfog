@@ -225,7 +225,7 @@ class _SwitchHome extends State<SwitchHome>
                                   itemBuilder: (context, index) =>
                                       Padding(
                                         padding: EdgeInsets.fromLTRB(10,5,10,5),
-                                        child: roomCard(index)
+                                        child: roomCard(context, index)
                                       ),
                                 )
                             )
@@ -662,7 +662,7 @@ class _SwitchHome extends State<SwitchHome>
         );
   }
 
-  Widget roomCard(int index) {
+  Widget roomCard(BuildContext context, int index) {
     return Slidable(
       endActionPane: ActionPane(
         extentRatio: 0.25,
@@ -670,8 +670,8 @@ class _SwitchHome extends State<SwitchHome>
         children: <Widget>[
           SlidableAction(
             autoClose: true,
-            onPressed: null,
-            backgroundColor: Color(0xFFFE4A49),
+            onPressed: (context){deleteProgram(counter - index - 1);},
+            backgroundColor: Colors.red,
             foregroundColor: Colors.white,
             icon: Icons.delete,
             label: 'Xóa',
@@ -1008,6 +1008,80 @@ class _SwitchHome extends State<SwitchHome>
     });
   }
 
+  void deleteProgram(int index){
+    showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (BuildContext context) => CupertinoAlertDialog(
+          title: Text('Xóa chương trình',
+              style: TextStyle(
+                  fontSize: 23, fontWeight: FontWeight.w500)),
+          content:  Padding(
+            padding: EdgeInsets.fromLTRB(0,7,0,7),
+            child:  Text(
+                'Bạn có chắc chắn muốn xóa chương trình không?',
+                style: TextStyle(
+                    fontSize: 16, fontWeight: FontWeight.w400)),
+          ),
+          actions: [
+            CupertinoDialogAction(
+                child: TextButton(
+                  child: Text('Có',
+                      style: TextStyle(
+                          fontSize: 23,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.red)),
+                  onPressed: () {
+                    setState(() {
+                      counter--;
+                    });
+                    if (index < (counter - 1) && index > 0) {
+                      machine.doc('program').collection('user').doc('countuser').set({
+                        'countuser': '0'
+                      });
+                      Future.delayed(new Duration(milliseconds: 50), () {
+                        for (int i = counter - 1; i >=counter - index ; i--) {
+                          getDataFireStore((i).toString(), i - 1);
+                        }
+                        machine.doc('user').collection('user').doc('${counter - 1}').delete();
+                        machine.doc('user').collection('user').doc('countuser').set({
+                          'countuser': '${counter-1}'
+                        });
+                      });
+                    }
+                    if (index == 0) {
+                      machine.doc('user').collection('user').doc('${counter - 1}').delete();
+                      machine.doc('user').collection('user').doc('countuser').set({
+                        'countuser': '${counter-1}'
+                      });
+                    }
+                    if (index == (counter - 1)) {
+                      machine.doc('user').collection('user').doc('0').delete();
+                      machine.doc('user').collection('user').doc('countuser').set({
+                        'countuser': '${counter-1}'
+                      });
+                      for (int i = 1; i <= counter - 1; i++) {
+                        getDataFireStore((i).toString(), i - 1);
+                      }
+                    }
+                    Navigator.pop(context);
+                  },
+                )),
+            CupertinoDialogAction(
+                child: TextButton(
+                  child: Text('Không',
+                      style: TextStyle(
+                          fontSize: 23,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.blue)),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                )),
+          ],
+        ));
+  }
+
   Widget timeApp(int index, bool checkStatus) {
     int seconds = timePhun % 60;
     int minutes = (timePhun % (3600)) ~/ 60;
@@ -1128,78 +1202,5 @@ class _SwitchHome extends State<SwitchHome>
     );
   }
 
-  void deleteProgram(){
-    showDialog(
-        barrierDismissible: false,
-        context: context,
-        builder: (BuildContext context) => CupertinoAlertDialog(
-          title: Text('Xóa chương trình',
-              style: TextStyle(
-                  fontSize: 23, fontWeight: FontWeight.w500)),
-          content:  Padding(
-            padding: EdgeInsets.fromLTRB(0,7,0,7),
-            child:  Text(
-                'Bạn có chắc chắn muốn xóa chương trình không?',
-                style: TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.w400)),
-          ),
-          actions: [
-            CupertinoDialogAction(
-                child: TextButton(
-                  child: Text('Có',
-                      style: TextStyle(
-                          fontSize: 23,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.red)),
-                  onPressed: () {
 
-                    // machine.doc('user').collection('user').doc('countuser').get().then((DocumentSnapshot documentSnapshot) {
-                    //   int counter = int.parse(documentSnapshot['countuser'].toString());
-                    //   if (index < (counter - 1) && index > 0) {
-                    //     machine.doc('user').collection('user').doc('countuser').set({
-                    //       'countuser': '0'
-                    //     });
-                    //     Future.delayed(new Duration(milliseconds: 50), () {
-                    //       for (int i = counter - 1; i >=counter - index ; i--) {
-                    //         getDataFireStore((i).toString(), i - 1);
-                    //       }
-                    //       machine.doc('user').collection('user').doc('${counter - 1}').delete();
-                    //       machine.doc('user').collection('user').doc('countuser').set({
-                    //         'countuser': '${counter-1}'
-                    //       });
-                    //     });
-                    //   }
-                    //   else if (index == 0) {
-                    //     machine.doc('user').collection('user').doc('${counter - 1}').delete();
-                    //     machine.doc('user').collection('user').doc('countuser').set({
-                    //       'countuser': '${counter-1}'
-                    //     });
-                    //   }
-                    //   else if (index == (counter - 1)) {
-                    //     machine.doc('user').collection('user').doc('0').delete();
-                    //     machine.doc('user').collection('user').doc('countuser').set({
-                    //       'countuser': '${counter-1}'
-                    //     });
-                    //     for (int i = 1; i <= counter - 1; i++) {
-                    //       getDataFireStore((i).toString(), i - 1);
-                    //     }
-                    //   }
-                    // });
-                    // Navigator.pop(context);
-                  },
-                )),
-            CupertinoDialogAction(
-                child: TextButton(
-                  child: Text('Không',
-                      style: TextStyle(
-                          fontSize: 23,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.blue)),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                )),
-          ],
-        ));
-  }
 }

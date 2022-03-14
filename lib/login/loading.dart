@@ -27,6 +27,7 @@ class _Loading extends State<Loading> {
     account.doc('$email').get().then((DocumentSnapshot documentSnapshot) {
       id = documentSnapshot['api_key'].toString();
     });
+    SwitchWidget();
   }
 
   SwitchWidget(){
@@ -41,7 +42,6 @@ class _Loading extends State<Loading> {
   @override
   void initState() {
     getUser();
-    SwitchWidget();
     super.initState();
   }
 
