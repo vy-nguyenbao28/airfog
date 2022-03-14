@@ -694,10 +694,7 @@ class _Registration extends State<Registration> {
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => Login()),
-                  );
+                  Navigator.of(context).pop;
                 },
                 child: Text('Xác nhận'),
               )

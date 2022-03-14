@@ -56,12 +56,12 @@ class _SwitchHome extends State<SwitchHome>
   //Các hàm ngoài
 
   void getDataFireStore(String ID, int index) {
-    machine.doc('user').collection('user').doc(ID).get().then((DocumentSnapshot documentSnapshot) {
+    machine.doc('program').collection('program').doc(ID).get().then((DocumentSnapshot documentSnapshot) {
       creator = documentSnapshot['creator'];
       volume = documentSnapshot['volume'];
       speed = documentSnapshot['speed'];
       roomname = documentSnapshot['roomname'];
-      machine.doc('user').collection('user').doc('${index}').set({
+      machine.doc('program').collection('program').doc('${index}').set({
         'creator': creator,
         'volume': volume,
         'speed': speed,
@@ -670,7 +670,7 @@ class _SwitchHome extends State<SwitchHome>
         children: <Widget>[
           SlidableAction(
             autoClose: true,
-            onPressed: (context){deleteProgram(counter - index - 1);},
+            onPressed: (context){deleteProgram(index);},
             backgroundColor: Colors.red,
             foregroundColor: Colors.white,
             icon: Icons.delete,
@@ -707,16 +707,17 @@ class _SwitchHome extends State<SwitchHome>
                             .snapshots(),
                         builder: (BuildContext context,
                             AsyncSnapshot<DocumentSnapshot> snapshot) {
-                          if (!snapshot.hasData) {
-                            return Icon(Icons.edit_outlined, size: 30, color: Color(0xffDF0029));
+                          if (snapshot.hasData) {
+                            return editUserButton(
+                                snapshot.data!["creator"],
+                                double.parse(snapshot.data!["speed"].toString()),
+                                snapshot.data!["volume"],
+                                snapshot.data!["roomname"],
+                                (counter - index - 1)
+                            );
+
                           }
-                          return editUserButton(
-                              snapshot.data!["creator"],
-                              double.parse(snapshot.data!["speed"].toString()),
-                              snapshot.data!["volume"],
-                              snapshot.data!["roomname"],
-                              (counter - index - 1)
-                          );
+                          return Icon(Icons.edit_outlined, size: 30, color: Color(0xffDF0029));
                         })
                   ],
                 ),
@@ -730,42 +731,42 @@ class _SwitchHome extends State<SwitchHome>
                             .snapshots(),
                         builder: (BuildContext context,
                             AsyncSnapshot<DocumentSnapshot> snapshot) {
-                          if (!snapshot.hasData) {
-                            return SizedBox(
-                              height: 100,
-                              child: Center(
-                                  child: Text('Đang tải...',
-                                      style: TextStyle(fontSize: 15))),
+                          if (snapshot.hasData) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment:
+                              MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Text('${snapshot.data!["roomname"]}',
+                                    style: TextStyle(
+                                        fontSize: 19,
+                                        fontWeight: FontWeight.w500)),
+                                Text('Người tạo: ${snapshot.data!["creator"]}',
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                        color: Color(0xff696969)
+                                    )),
+                                Text('Thể tích phòng: ${snapshot.data!["volume"]} m\u00B3',
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                        color: Color(0xff696969)
+                                    )),
+                                Text('Nồng độ: ${snapshot.data!["speed"]} ml/m\u00B3',
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                        color: Color(0xff696969)
+                                    )),
+                              ],
                             );
                           }
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment:
-                            MainAxisAlignment.spaceEvenly,
-                            children: [
-                              Text('${snapshot.data!["roomname"]}',
-                                  style: TextStyle(
-                                      fontSize: 19,
-                                      fontWeight: FontWeight.w500)),
-                              Text('Người tạo: ${snapshot.data!["creator"]}',
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                      color: Color(0xff696969)
-                                  )),
-                              Text('Thể tích phòng: ${snapshot.data!["volume"]} m\u00B3',
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                      color: Color(0xff696969)
-                                  )),
-                              Text('Nồng độ: ${snapshot.data!["speed"]} ml/m\u00B3',
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                      color: Color(0xff696969)
-                                  )),
-                            ],
+                          return SizedBox(
+                            height: 100,
+                            child: Center(
+                                child: Text('Đang tải...',
+                                    style: TextStyle(fontSize: 15))),
                           );
                         })
                 ),
@@ -1033,38 +1034,44 @@ class _SwitchHome extends State<SwitchHome>
                           color: Colors.red)),
                   onPressed: () {
                     setState(() {
-                      counter--;
+                      showProgram = false;
                     });
-                    if (index < (counter - 1) && index > 0) {
-                      machine.doc('program').collection('user').doc('countuser').set({
-                        'countuser': '0'
+                    Navigator.pop(context);
+                    if (index < counter - 1 && index > 0) {
+                      setState(() {
+                        counter--;
                       });
-                      Future.delayed(new Duration(milliseconds: 50), () {
-                        for (int i = counter - 1; i >=counter - index ; i--) {
-                          getDataFireStore((i).toString(), i - 1);
-                        }
-                        machine.doc('user').collection('user').doc('${counter - 1}').delete();
-                        machine.doc('user').collection('user').doc('countuser').set({
-                          'countuser': '${counter-1}'
-                        });
-                      });
-                    }
-                    if (index == 0) {
-                      machine.doc('user').collection('user').doc('${counter - 1}').delete();
-                      machine.doc('user').collection('user').doc('countuser').set({
-                        'countuser': '${counter-1}'
-                      });
-                    }
-                    if (index == (counter - 1)) {
-                      machine.doc('user').collection('user').doc('0').delete();
-                      machine.doc('user').collection('user').doc('countuser').set({
-                        'countuser': '${counter-1}'
-                      });
-                      for (int i = 1; i <= counter - 1; i++) {
+                      for (int i = counter; i > counter - index; i--) {
                         getDataFireStore((i).toString(), i - 1);
+                        if (i == counter - index){
+                          Timer.periodic(Duration(milliseconds: 500), (Timer t)
+                          => machine.doc('program').collection('program').doc('$counter').delete());
+                        }
                       }
                     }
-                    Navigator.pop(context);
+                    if (index == 0) {
+                      setState(() {
+                        counter--;
+                      });
+                      machine.doc('program').collection('program').doc('$counter').delete();
+                    }
+                    if (index == counter - 1) {
+                      for (int i = 1; i <= counter - 1; i++) {
+                        getDataFireStore((i).toString(), i - 1);
+                        if (i == counter){
+                          Timer.periodic(Duration(milliseconds: 500), (Timer t)
+                          => machine.doc('program').collection('program').doc('$counter').delete());
+                        }
+                      }
+                      setState(() {
+                        counter--;
+                      });
+                    }
+                    Timer.periodic(Duration(milliseconds: 1500), (Timer t) => setState(() {
+                      setState(() {
+                        showProgram = true;
+                      });
+                    }));
                   },
                 )),
             CupertinoDialogAction(

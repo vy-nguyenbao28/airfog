@@ -56,12 +56,13 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
       collection(yearstart).
       doc(monthstart).
       collection(daystart).get();
+
     List<DocumentSnapshot> _myDocCount = querySnapshot.docs;
     machine.doc('history').
       collection(yearstart).
       doc(monthstart).
       collection(daystart).doc('${_myDocCount.length}').set({
-        'date_created': '$yearstart/$monthstart/$daystart} $timestart',
+        'date_created': '$yearstart/$monthstart/$daystart $timestart',
         'room_name': 'Chạy nhanh',
         'run_time': '${runtime.padLeft(2, '0')}:${runtime.padLeft(2, '0')}:${runtime.padLeft(2, '0')}',
         'status': errorcode

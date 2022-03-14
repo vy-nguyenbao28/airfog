@@ -396,11 +396,11 @@ class _Login extends State<Login> {
           );
           account.doc('${textAccount.text}').get().then((DocumentSnapshot documentSnapshot) {
             setState(() {
-              id = documentSnapshot['api_key'].toString();
+              id = documentSnapshot['apikey'].toString();
             });
             account.doc('${textAccount.text}').set({
-              'pass': '${textPass.text}',
-              'api_key': documentSnapshot['api_key'].toString(),
+              'password': '${textPass.text}',
+              'apikey': documentSnapshot['apikey'].toString(),
               'name': user.user!.displayName
             });
           });
@@ -411,7 +411,7 @@ class _Login extends State<Login> {
         }
       }
       else {
-        Navigator.of(context).pop;
+        Navigator.of(context).pop();
         showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
