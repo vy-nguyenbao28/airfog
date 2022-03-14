@@ -161,7 +161,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           child: TabBarView(
             controller: _tabController,
             children: [
-              SwitchHome(),
+              SwitchRunNow(),
               SwitchCheck(),
               SwitchHome(),
               SwitchHistory(),

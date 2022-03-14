@@ -374,6 +374,10 @@ class _SwitchHistory extends State<SwitchHistory> {
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
             color: Colors.white,
+            // border: Border.all(
+            //   color: AppColors.primary,
+            //   width: 1.5, //                   <--- border width here
+            // ),
             boxShadow: [
               BoxShadow(
                 color: AppColors.lighterGray,
