@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'dart:convert' as cnv;
 import 'package:flutter/material.dart';
 import 'package:mist_app/home.dart';
 import 'package:mist_app/theme/colors.dart';
@@ -7,6 +7,9 @@ import 'package:mist_app/login/login.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mist_app/theme/constant.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dio/dio.dart';
+import 'package:mist_app/network_request/user_model.dart';
+import 'package:mist_app/check_connect.dart';
 
 class Loading extends StatefulWidget {
   @override

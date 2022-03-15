@@ -108,19 +108,6 @@ class _SwitchHome extends State<SwitchHome>
     Dio().getUri(Uri.http('192.168.16.2','/$api',dataSend));
   }
 
-  void getTime(int index)  {
-    machine.doc('program').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
-      checkTemp = int.parse(documentSnapshot['temp'].toString());
-      checkFlow = int.parse(documentSnapshot['flow'].toString());
-      machine.doc('program').collection('program').doc('${counter- index - 1}').get().then((DocumentSnapshot documentSnapshot) {
-        int speed = int.parse(documentSnapshot['speed'].toString());
-        int volume = int.parse(documentSnapshot['volume'].toString());
-        Roomname = documentSnapshot['roomname'].toString();
-        timePhun = speed * volume * 60 ~/ checkFlow;
-      });
-    });
-  }
-
   //Linh tinh
   String? get _errorTextRoom {
     final text = textRoom.value.text;
@@ -785,16 +772,25 @@ class _SwitchHome extends State<SwitchHome>
                 RawMaterialButton(
                   elevation: 2,
                   onPressed: () {
-                    getTime(index);
-                    if (!_isConnected){
-                      notification('Không có kết nối Internet !!!');
-                    }
-                    if (_isConnected && model == null){
-                      notification('Không có kết nối với máy');
-                    }
-                    if (_isConnected && model != null){
-                      StartProgram(counter - index - 1);
-                    }
+                    machine.doc('program').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
+                      checkTemp = int.parse(documentSnapshot['temp'].toString());
+                      checkFlow = int.parse(documentSnapshot['flow'].toString());
+                      machine.doc('program').collection('program').doc('${counter- index - 1}').get().then((DocumentSnapshot documentSnapshot) {
+                        int speed = int.parse(documentSnapshot['speed'].toString());
+                        int volume = int.parse(documentSnapshot['volume'].toString());
+                        Roomname = documentSnapshot['roomname'].toString();
+                        timePhun = speed * volume * 60 ~/ checkFlow;
+                        if (!_isConnected){
+                          notification('Không có kết nối Internet !!!');
+                        }
+                        if (_isConnected && model == null){
+                          notification('Không có kết nối với máy');
+                        }
+                        if (_isConnected ){
+                          StartProgram(counter - index - 1);
+                        }
+                      });
+                    });
                   },
                   fillColor: AppColors.tertiary,
                   shape: CircleBorder(),
@@ -865,13 +861,6 @@ class _SwitchHome extends State<SwitchHome>
                           });
                           Navigator.pop(context);
                           checkBell();
-                          Future.delayed(Duration(seconds: 5), () async {
-                            Navigator.of(context).pop();
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => TimerApp()),
-                            );
-                          });
                           timer!.cancel;
                         };
                       });
@@ -931,13 +920,6 @@ class _SwitchHome extends State<SwitchHome>
                             timer!.cancel;
                             Navigator.pop(context);
                             checkBell();
-                            Future.delayed(Duration(seconds: 5), () async {
-                              Navigator.of(context).pop();
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => TimerApp()),
-                              );
-                            });
                           },
                           child: Container(
                             width: 100,
@@ -1024,6 +1006,13 @@ class _SwitchHome extends State<SwitchHome>
         );
       },
     );
+    Future.delayed(Duration(seconds: 5), () async {
+      Navigator.of(context).pop();
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => TimerApp()),
+      );
+    });
   }
 
   void deleteProgram(int index){

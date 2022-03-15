@@ -122,18 +122,6 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
   }
 
   //Hàm HTTP
-  List<UserModel>? model;
-  Future<void> getDataHttp() async {
-    var response = await Dio().getUri(Uri.http('192.168.16.2', '/getweighttemp', {'api_key': '$id'}));
-    if (response.statusCode == 200){
-      List<dynamic> body = cnv.jsonDecode(response.data);
-      model = body.map((dynamic item) => UserModel.fromJson(item)).cast<UserModel>().toList();
-      setState(() {
-        temp = int.parse(model![0].temp.toString());
-        loadcell = int.parse(model![0].loadcell.toString());
-      });
-    }
-  }
 
   void sendData(String mode, final dataSend)async  {
     Dio().getUri(Uri.http('192.168.16.2','/$mode',dataSend));
@@ -187,10 +175,6 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
     }
   }
 
-  Future<Null> refeshApp() async{
-    await Future.delayed(Duration(milliseconds: 500));
-    getDataHttp();
-  }
 
   //Hàm initState và dispose
   @override
@@ -201,7 +185,6 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
     time = '${dateTime.hour}:${dateTime.minute}:${dateTime.second}';
     super.initState();
     timerLoadData = Timer.periodic(Duration(seconds: 3), (Timer t) {
-      getDataHttp();
       checkError();
     });
   }
@@ -245,6 +228,10 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        flexibleSpace: Image(
+          image: AssetImage('assets/headerdrawer.png'),
+          fit: BoxFit.cover,
+        ),
         automaticallyImplyLeading: true,
         backgroundColor: AppColors.tertiary,
         centerTitle: false,
@@ -256,27 +243,24 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
               color: Colors.white),
         ),
       ),
-      body: RefreshIndicator(
-        child: ListView(
-          padding: EdgeInsets.fromLTRB(20,0,20,0),
-          children: [Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children:[
-                SizedBox(height: 10),
-                (model != null && _isConnected)
-                    ? Text("Đã kết nối", style: TextStyle(color: AppColors.tertiary))
-                    : Text("Chưa kết nối", style: TextStyle(color: Colors.red)),
-                inforTime(),
-                SizedBox(height: 10),
-                countTime(),
-                SizedBox(height: 30),
-                buttonTime(),
-                SizedBox(height: 10),
-              ]
-          ),],
-        ),
-        onRefresh: refeshApp,
-      )
+      body: ListView(
+        padding: EdgeInsets.fromLTRB(20,0,20,0),
+        children: [Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children:[
+              SizedBox(height: 10),
+              (model != null && _isConnected)
+                  ? Text("Đã kết nối", style: TextStyle(color: AppColors.tertiary))
+                  : Text("Chưa kết nối", style: TextStyle(color: Colors.red)),
+              inforTime(),
+              SizedBox(height: 10),
+              countTime(),
+              SizedBox(height: 30),
+              buttonTime(),
+              SizedBox(height: 10),
+            ]
+        ),],
+      ),
     );
   }
 
@@ -342,7 +326,7 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
                   width: MediaQuery.of(context).size.width,
                   height: MediaQuery.of(context).size.width,
                   duration: timePhun,
-                  fillColor: Colors.blue,
+                  fillColor: AppColors.tertiary,
                   ringColor: Colors.grey.shade300,
                   controller: _controller,
                   backgroundColor: Colors.white54,
@@ -379,8 +363,8 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
                   width: MediaQuery.of(context).size.width,
                   height: MediaQuery.of(context).size.width,
                   duration: timePhun,
-                  fillColor: Colors.blue,
-                  ringColor: Colors.blue,
+                  fillColor: AppColors.tertiary,
+                  ringColor: AppColors.tertiary,
                   controller: _controller,
                   backgroundColor: Colors.white54,
                   strokeWidth: 10.0,
@@ -410,84 +394,64 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
 
   Widget buttonTime(){
     return Center(
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(MediaQuery.of(context).size.width * 0.15,0,MediaQuery.of(context).size.width * 0.15,0),
-        child: RawMaterialButton(
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(5)),
-            elevation: 2.0,
-            fillColor: AppColors.tertiary,
-            onPressed: () {
-              if (timePhun != 0 && model != null && _isConnected){
-                showDialog(
-                    barrierDismissible: false,
-                    context: context,
-                    builder: (BuildContext context)=> CupertinoAlertDialog(
-                      title: Text(
-                          'Dừng ngay',
+      child: IconButton(
+        splashRadius: 50,
+        iconSize: 100,
+        icon:Icon(Icons.stop_circle_sharp,
+          color: AppColors.tertiary,
+        ),
+        onPressed: (){
+          if (timePhun != 0 && model != null && _isConnected){
+            showDialog(
+                barrierDismissible: false,
+                context: context,
+                builder: (BuildContext context)=> CupertinoAlertDialog(
+                  title: Text(
+                      'Dừng ngay',
+                      style: TextStyle(
+                          fontSize: 23,
+                          fontWeight: FontWeight.w500)),
+                  content: Padding(
+                    padding: EdgeInsets.fromLTRB(0,7,0,7),
+                    child: Text(
+                        'Bạn có chắc chắn muốn dừng chương trình không?',
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400)),
+                  ),
+                  actions: [
+                    CupertinoDialogAction(child: TextButton(
+                      child: Text(
+                          'Có',
                           style: TextStyle(
                               fontSize: 23,
-                              fontWeight: FontWeight.w500)),
-                      content: Padding(
-                        padding: EdgeInsets.fromLTRB(0,7,0,7),
-                        child: Text(
-                            'Bạn có chắc chắn muốn dừng chương trình không?',
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w400)),
-                      ),
-                      actions: [
-                        CupertinoDialogAction(child: TextButton(
-                          child: Text(
-                              'Có',
-                              style: TextStyle(
-                                  fontSize: 23,
-                                  fontWeight: FontWeight.w500,color: Colors.red)),
-                          onPressed: (){
-                            setState(() {
-                              timeUp = timePhun - timeUp;
-                              updateHistoryToFireStore(year.toString(), month.toString(), day.toString(), time.toString(), timeUp,'2');
-                              timePhun = 0;
-                              isActive = false;
-                              sendData('stop',{'api_key': '$id', 'stopcode':'1'});
-                            });
-                            Navigator.of(context).pop();
-                            Navigator.of(context).pop();
-                          },
-                        )),
-                        CupertinoDialogAction(child: TextButton(
-                          child: Text(
-                              'Không',
-                              style: TextStyle(
-                                  fontSize: 23,
-                                  fontWeight: FontWeight.w500, color: Colors.blue)),
-                          onPressed: (){
-                            Navigator.pop(context);
-                          },
-                        )),
-                      ],
-                    ));
-              }
-
-            },
-            child: Padding(
-                padding: EdgeInsets.all(5),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Icon(
-                      Icons.stop,
-                      color: Colors.white,
-                      size: 35,
-                    ),
-                    Text(" Dừng ngay",
-                        style: TextStyle(
-                          fontSize: 25,
-                          color: Colors.white,
-                        )),
+                              fontWeight: FontWeight.w500,color: Colors.red)),
+                      onPressed: (){
+                        setState(() {
+                          timeUp = timePhun - timeUp;
+                          updateHistoryToFireStore(year.toString(), month.toString(), day.toString(), time.toString(), timeUp,'2');
+                          timePhun = 0;
+                          isActive = false;
+                          sendData('stop',{'api_key': '$id', 'stopcode':'1'});
+                        });
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pop();
+                      },
+                    )),
+                    CupertinoDialogAction(child: TextButton(
+                      child: Text(
+                          'Không',
+                          style: TextStyle(
+                              fontSize: 23,
+                              fontWeight: FontWeight.w500, color: Colors.blue)),
+                      onPressed: (){
+                        Navigator.pop(context);
+                      },
+                    )),
                   ],
-                ))),
+                ));
+          }
+        },
       ),
     );
   }
@@ -613,7 +577,7 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
       padding: EdgeInsets.all(10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(5),
-        color: Colors.blue,
+        color: AppColors.tertiary,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
