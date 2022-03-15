@@ -97,7 +97,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   void initState() {
     Timer.periodic(Duration(seconds: 3), (Timer t) async {
       getDataHttp();
-      print('đã gọi');
     });
     _tabController = TabController(length: 5, vsync: this);
     super.initState();

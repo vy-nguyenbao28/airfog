@@ -5,8 +5,8 @@ String Roomname = '';
 
 String id = '';
 
-int temp = 26;
-int loadcell = 3000;
+int temp = 0;
+int loadcell = 0;
 String data = '0';
 
 List<History> history= [];
