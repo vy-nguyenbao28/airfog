@@ -20,7 +20,7 @@ class _Loading extends State<Loading> {
   Future<void> getUser() async {
     WidgetsFlutterBinding.ensureInitialized();
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    email = prefs.getString('email').toString();
+    email = prefs.getString('email');
     loadApiKey();
   }
 
