@@ -909,11 +909,13 @@ class _SwitchHome extends State<SwitchHome>
                           onTap: () {
                             machine.doc('program').collection('program').doc('${counter - index - 1}').get().then((DocumentSnapshot documentSnapshot) {
                               int speed = int.parse(documentSnapshot['speed'].toString());
+                              int roomname = int.parse(documentSnapshot['roomname'].toString());
                               machine.doc('program').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
                                 makeDio('start',{'api_key': '$id',
                                   'speed':'$speed',
                                   'flow':'${documentSnapshot['flow'].toString()}',
                                   'time':'$timePhun',
+                                  'roomname':'$roomname',
                                 });
                               });
                             });
@@ -998,7 +1000,7 @@ class _SwitchHome extends State<SwitchHome>
                   children: [
                     CircularProgressIndicator(),
                     SizedBox(height: 20),
-                    Text("Đang kiểm tra còi...",style: TextStyle(fontSize: 15)),
+                    Text("Chuẩn bị phun...",style: TextStyle(fontSize: 15)),
                   ],
                 ),
               )

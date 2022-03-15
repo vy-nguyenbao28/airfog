@@ -7,6 +7,7 @@ String id = '';
 
 int temp = 26;
 int loadcell = 3000;
+String data = '0';
 
 List<History> history= [];
 List<UserModel>? model;

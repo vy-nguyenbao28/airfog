@@ -184,14 +184,6 @@ class _SwitchRunNow extends State<SwitchRunNow>
         int.parse((controller.duration!.inHours % 60).toString())*3600 +
             int.parse((controller.duration!.inMinutes % 60).toString())*60 +
             int.parse((controller.duration!.inSeconds % 60).toString());
-    if (((timePhun * checkFlow) / 60 - loadcell > 0) || temp >= checkTemp){
-      setState(() {
-        checkStatus = true;
-      });
-    }else if ((timePhun * checkFlow) / 60 - loadcell < 0 && (temp<checkTemp)){
-      checkStatus = false;
-      _startTimer();
-    }
     if(timePhun == 0){
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: const Text('Yêu cầu nhập thời gian chạy !!!',
@@ -209,101 +201,47 @@ class _SwitchRunNow extends State<SwitchRunNow>
     else showDialog(
         barrierDismissible: false,
         context: context,
-        builder: (BuildContext context) => SimpleDialog(
-          contentPadding: EdgeInsets.only(left: 10, right: 10, bottom: 15),
-          titlePadding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
-          title: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                !checkStatus
-                    ? Image.asset('assets/checked.png',width: 60)
-                    : Image.asset('assets/error.png',width: 60),
-                SizedBox(height: 10),
-                !checkStatus
-                    ? Text('Tiến hành phun sau',
-                    style: TextStyle(color: AppColors.tertiary, fontSize: 20))
-                    : Text('Phát hiện lỗi',
-                    style: TextStyle(color: Colors.red, fontSize: 20)),
-                Container(
-                  margin: EdgeInsets.fromLTRB(30,10,30,0),
-                  height: 1.5,
-                  color: Color(0xffDDDDDD),
-                )
-              ]),
-          children: <Widget>[
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                (!checkStatus)
-                    ? StreamBuilder<int>(
-                    stream: _events!.stream,
-                    builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
-                      SchedulerBinding.instance!.addPostFrameCallback((_) {
-                        if (secondsPassed == 0 && !checkStatus) {
-                          //FlutterRingtonePlayer.playNotfication();
-                          print('timePhun = $timePhun');
-                          machine.doc('user').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
-                            sendData('start',{'api_key': '$id',
-                              'speed':'1',  //cần sửa do đây là chạy nhanh ko có
-                              'flow':'${documentSnapshot['flow'].toString()}',
-                              'time':'$timePhun',
-                            });
-                          });
-                          Roomname = 'Chạy nhanh';
-                          Navigator.pop(context);
-                          checkBell();
-                          Future.delayed(Duration(seconds: 5), () async {
-                            Navigator.of(context).pop();
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => TimerApp()),
-                            );
-                          });
-                          timer!.cancel;
-                        };
-                      });
-                      return timeApp();
-                    })
-                    : SizedBox(width: 0),
-                statusCard(checkTemp,checkFlow),
-                SizedBox(height: 10),
-                (checkStatus)
-                    ? Center(
-                  child:ClipRRect(
-                    borderRadius: BorderRadius.circular(25),
-                    child: Material(
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.pop(context);
-                        },
-                        child: Container(
-                          width: 140,
-                          height: 50,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(25),
-                              color: Colors.red
-                          ),
-                          child: Center(
-                              child: Text(
-                                'Xác nhận',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold),
-                              )),
-                        ),
-                      ),
-                    ),
-                  ),
-                )
-                    : Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: <Widget>[
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(25),
-                      child: Material(
-                        child: InkWell(
-                          onTap: () {
+        builder: (BuildContext context){
+          if (((timePhun * checkFlow) / 60 - loadcell > 0) || temp >= checkTemp){
+            setState(() {
+              checkStatus = true;
+            });
+          }else if ((timePhun * checkFlow) / 60 - loadcell < 0 && (temp<checkTemp)){
+            checkStatus = false;
+            _startTimer();
+          }
+          return SimpleDialog(
+            contentPadding: EdgeInsets.only(left: 10, right: 10, bottom: 15),
+            titlePadding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
+            title: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  !checkStatus
+                      ? Image.asset('assets/checked.png',width: 60)
+                      : Image.asset('assets/error.png',width: 60),
+                  SizedBox(height: 10),
+                  !checkStatus
+                      ? Text('Tiến hành phun sau',
+                      style: TextStyle(color: AppColors.tertiary, fontSize: 20))
+                      : Text('Phát hiện lỗi',
+                      style: TextStyle(color: Colors.red, fontSize: 20)),
+                  Container(
+                    margin: EdgeInsets.fromLTRB(30,10,30,0),
+                    height: 1.5,
+                    color: Color(0xffDDDDDD),
+                  )
+                ]),
+            children: <Widget>[
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  (!checkStatus)
+                      ? StreamBuilder<int>(
+                      stream: _events!.stream,
+                      builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
+                        SchedulerBinding.instance!.addPostFrameCallback((_) {
+                          if (secondsPassed == 0 && !checkStatus) {
+                            //FlutterRingtonePlayer.playNotfication();
                             print('timePhun = $timePhun');
                             machine.doc('user').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
                               sendData('start',{'api_key': '$id',
@@ -312,9 +250,8 @@ class _SwitchRunNow extends State<SwitchRunNow>
                                 'time':'$timePhun',
                               });
                             });
-                            timer!.cancel;
-                            Navigator.pop(context);
                             Roomname = 'Chạy nhanh';
+                            Navigator.pop(context);
                             checkBell();
                             Future.delayed(Duration(seconds: 5), () async {
                               Navigator.of(context).pop();
@@ -323,44 +260,33 @@ class _SwitchRunNow extends State<SwitchRunNow>
                                 MaterialPageRoute(builder: (context) => TimerApp()),
                               );
                             });
-                          },
-                          child: Container(
-                            width: 100,
-                            height: 50,
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(25),
-                                color: AppColors.tertiary
-                            ),
-                            child: Center(
-                                child: Text(
-                                  'Bắt đầu',
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold),
-                                )),
-                          ),
-                        ),
-                      ),
-                    ),
-                    ClipRRect(
+                            timer!.cancel;
+                          };
+                        });
+                        return timeApp();
+                      })
+                      : SizedBox(width: 0),
+                  statusCard(checkTemp,checkFlow),
+                  SizedBox(height: 10),
+                  (checkStatus)
+                      ? Center(
+                    child:ClipRRect(
                       borderRadius: BorderRadius.circular(25),
                       child: Material(
                         child: InkWell(
                           onTap: () {
-                            timer!.cancel;
                             Navigator.pop(context);
                           },
                           child: Container(
-                            width: 100,
+                            width: 140,
                             height: 50,
                             decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(25),
-                                color: AppColors.tertiary
+                                color: Colors.red
                             ),
                             child: Center(
                                 child: Text(
-                                  'Hủy bỏ',
+                                  'Xác nhận',
                                   style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 16,
@@ -370,12 +296,88 @@ class _SwitchRunNow extends State<SwitchRunNow>
                         ),
                       ),
                     ),
-                  ],
-                )
-              ],
-            )
-          ],
-        ));
+                  )
+                      : Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: <Widget>[
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(25),
+                        child: Material(
+                          child: InkWell(
+                            onTap: () {
+                              print('timePhun = $timePhun');
+                              machine.doc('user').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
+                                sendData('start',{'api_key': '$id',
+                                  'speed':'1',  //cần sửa do đây là chạy nhanh ko có
+                                  'flow':'${documentSnapshot['flow'].toString()}',
+                                  'time':'$timePhun',
+                                });
+                              });
+                              timer!.cancel;
+                              Navigator.pop(context);
+                              Roomname = 'Chạy nhanh';
+                              checkBell();
+                              Future.delayed(Duration(seconds: 5), () async {
+                                Navigator.of(context).pop();
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => TimerApp()),
+                                );
+                              });
+                            },
+                            child: Container(
+                              width: 100,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(25),
+                                  color: AppColors.tertiary
+                              ),
+                              child: Center(
+                                  child: Text(
+                                    'Bắt đầu',
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold),
+                                  )),
+                            ),
+                          ),
+                        ),
+                      ),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(25),
+                        child: Material(
+                          child: InkWell(
+                            onTap: () {
+                              timer!.cancel;
+                              Navigator.pop(context);
+                            },
+                            child: Container(
+                              width: 100,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(25),
+                                  color: AppColors.tertiary
+                              ),
+                              child: Center(
+                                  child: Text(
+                                    'Hủy bỏ',
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold),
+                                  )),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                ],
+              )
+            ],
+          );
+        });
   }
 
   void checkBell(){

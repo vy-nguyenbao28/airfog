@@ -49,8 +49,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
       setState(() {
         temp = int.parse(model![0].temp.toString());
         loadcell = int.parse(model![0].loadcell.toString());
+        data = model![0].loadcell.toString();
       });
-      if (model![0].data.toString() == '1' && !checkData){
+      if (data == '1' && checkData == false){
         setState(() {
           checkData = true;
         });
@@ -96,9 +97,10 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   void initState() {
     Timer.periodic(Duration(seconds: 3), (Timer t) async {
       getDataHttp();
+      print('đã gọi');
     });
-    super.initState();
     _tabController = TabController(length: 5, vsync: this);
+    super.initState();
   }
 
   @override
