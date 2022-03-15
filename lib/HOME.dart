@@ -134,19 +134,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 color: Colors.white,
               ),
               onPressed: () async {
-                // var response = await Dio().getUri(Uri.http('61add905d228a9001703afe3.mockapi.io', '/api/vyii'));
-                // if (response.statusCode == 200){
-                //   List<dynamic> body = cnv.jsonDecode(response.data);
-                //   model = body.map((dynamic item) => UserModel.fromJson(item)).cast<UserModel>().toList();
-                //   setState(() {
-                //     temp = int.parse(model![0].temp.toString());
-                //     loadcell = int.parse(model![0].loadcell.toString());
-                //   });
-                // } else print('chưa có');
-                print('loadcell = $loadcell');
-                print('temp = $temp');
-                // Navigator.of(context).push(MaterialPageRoute(
-                //     builder: (BuildContext context) => QRScan()));
+                Navigator.of(context).push(MaterialPageRoute(
+                     builder: (BuildContext context) => QRScan()));
               },
             ),
           ],
