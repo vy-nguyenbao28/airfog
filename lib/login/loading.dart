@@ -26,6 +26,7 @@ class _Loading extends State<Loading> {
 
   loadApiKey() async {
     if (email == null){
+      print('vào login');
       new Future.delayed(new Duration(milliseconds: 1500), () {
         Navigator.push(
             context,
@@ -34,8 +35,8 @@ class _Loading extends State<Loading> {
       });
     }
     if (email != null){
-      int dem = 0;
       account.doc('$email').get().then((DocumentSnapshot documentSnapshot) {
+        int dem = 0;
         do {
           setState(() {
             id = documentSnapshot['apikey'].toString();
