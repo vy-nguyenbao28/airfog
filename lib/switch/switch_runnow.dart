@@ -158,15 +158,33 @@ class _SwitchRunNow extends State<SwitchRunNow>
               color: AppColors.tertiary,
           ),
           onPressed: (){
-            if (!_isConnected){
-              notification('Không có kết nối Internet !!!');
-            }
-            if (_isConnected && (model == null)){
-              notification('Không có kết nối với máy !!!');
-            }
-            if (_isConnected == true && model != null){
-              StartProgram();
-            }
+            timePhun =
+                int.parse((controller.duration!.inHours % 60).toString())*3600 +
+                    int.parse((controller.duration!.inMinutes % 60).toString())*60 +
+                    int.parse((controller.duration!.inSeconds % 60).toString());
+            machine.doc('program').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
+              setState(() {
+                checkTemp = int.parse(documentSnapshot['temp'].toString());
+                checkFlow = int.parse(documentSnapshot['flow'].toString());
+              });
+              if (((timePhun * checkFlow) / 60 - loadcell > 0) || temp >= checkTemp){
+                setState(() {
+                  checkStatus = true;
+                });
+              }else if ((timePhun * checkFlow) / 60 - loadcell < 0 && (temp<checkTemp)){
+                checkStatus = false;
+                _startTimer();
+              }
+              if (!_isConnected){
+                notification('Không có kết nối Internet !!!');
+              }
+              if (_isConnected && (model == null)){
+                notification('Không có kết nối với máy !!!');
+              }
+              if (_isConnected == true){
+                StartProgram();
+              }
+            });
           },
         ),
 
@@ -180,10 +198,7 @@ class _SwitchRunNow extends State<SwitchRunNow>
   }
 
   void StartProgram(){
-    timePhun =
-        int.parse((controller.duration!.inHours % 60).toString())*3600 +
-            int.parse((controller.duration!.inMinutes % 60).toString())*60 +
-            int.parse((controller.duration!.inSeconds % 60).toString());
+
     if(timePhun == 0){
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: const Text('Yêu cầu nhập thời gian chạy !!!',
@@ -202,14 +217,6 @@ class _SwitchRunNow extends State<SwitchRunNow>
         barrierDismissible: false,
         context: context,
         builder: (BuildContext context){
-          if (((timePhun * checkFlow) / 60 - loadcell > 0) || temp >= checkTemp){
-            setState(() {
-              checkStatus = true;
-            });
-          }else if ((timePhun * checkFlow) / 60 - loadcell < 0 && (temp<checkTemp)){
-            checkStatus = false;
-            _startTimer();
-          }
           return SimpleDialog(
             contentPadding: EdgeInsets.only(left: 10, right: 10, bottom: 15),
             titlePadding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
@@ -413,12 +420,6 @@ class _SwitchRunNow extends State<SwitchRunNow>
 
   Widget valueCard() {
     final double sliderWidth = MediaQuery.of(context).size.width;
-    machine.doc('program').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
-      setState(() {
-        checkTemp = int.parse(documentSnapshot['temp'].toString());
-        checkFlow = int.parse(documentSnapshot['flow'].toString());
-      });
-    });
     return Container(
         margin: EdgeInsets.only(right: 20, left: 20, top: 8),
         padding: EdgeInsets.symmetric(vertical: 12, horizontal: 10),

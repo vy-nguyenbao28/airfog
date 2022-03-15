@@ -39,7 +39,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   void sendData(String mode, final dataSend)async  {
     Dio().getUri(Uri.http('192.168.16.2','/$mode',dataSend));
   }
-  bool checkData = false;
+
+  int demcheckdata = 0;
 
   void getDataHttp() async {
     var response = await Dio().getUri(Uri.http('192.168.16.2', '/getweighttemp', {'api_key': '$id'}));
@@ -51,25 +52,25 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         loadcell = int.parse(model![0].loadcell.toString());
         data = model![0].loadcell.toString();
       });
-      if (data == '1' && checkData == false){
-        setState(() {
-          checkData = true;
-        });
-        var check = await Dio().getUri(Uri.http('192.168.16.2', '/checkconnect', {'api_key': '$id'}));
-        if (check.statusCode == 200){
-          List<dynamic> body = cnv.jsonDecode(check.data);
-          modelconnect = body.map((dynamic item) => CheckConnect.fromJson(item)).cast<CheckConnect>().toList();
-          if (modelconnect![0].datastate.toString() == '1'){
-            updateHistoryToFireStore();
-            sendData('response',{'api_key': '$id',
-              'rescode':'2',  //dữ liệu đã được ghi
-            });
-          } else
-            sendData('response',{'api_key': '$id',
-              'rescode':'1',   //dữ liệu chưa được ghi
-            });
+      do {
+        if (data == '1'){
+          var check = await Dio().getUri(Uri.http('192.168.16.2', '/checkconnect', {'api_key': '$id'}));
+          if (check.statusCode == 200){
+            List<dynamic> body = cnv.jsonDecode(check.data);
+            modelconnect = body.map((dynamic item) => CheckConnect.fromJson(item)).cast<CheckConnect>().toList();
+            if (modelconnect![0].datastate.toString() == '1'){
+              updateHistoryToFireStore();
+              sendData('response',{'api_key': '$id',
+                'rescode':'2',  //dữ liệu đã được ghi
+              });
+            } else
+              sendData('response',{'api_key': '$id',
+                'rescode':'1',   //dữ liệu chưa được ghi
+              });
+          }
         }
-      }
+        demcheckdata++;
+      } while (demcheckdata <= 1);
     }
   }
 
