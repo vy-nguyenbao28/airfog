@@ -50,7 +50,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         temp = int.parse(model![0].temp.toString());
         loadcell = int.parse(model![0].loadcell.toString());
       });
-      if (model![0].data.toString() == '1' && checkData){
+      if (model![0].data.toString() == '1' && !checkData){
         setState(() {
           checkData = true;
         });
