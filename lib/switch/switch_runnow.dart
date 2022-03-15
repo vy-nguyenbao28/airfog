@@ -408,7 +408,7 @@ class _SwitchRunNow extends State<SwitchRunNow>
                   children: [
                     CircularProgressIndicator(),
                     SizedBox(height: 20),
-                    Text("Đang kiểm tra còi...",style: TextStyle(fontSize: 15)),
+                    Text("Chuẩn bị phun...",style: TextStyle(fontSize: 15)),
                   ],
                 ),
               )
