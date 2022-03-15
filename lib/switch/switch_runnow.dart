@@ -413,7 +413,7 @@ class _SwitchRunNow extends State<SwitchRunNow>
 
   Widget valueCard() {
     final double sliderWidth = MediaQuery.of(context).size.width;
-    machine.doc('user').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
+    machine.doc('program').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
       setState(() {
         checkTemp = int.parse(documentSnapshot['temp'].toString());
         checkFlow = int.parse(documentSnapshot['flow'].toString());
