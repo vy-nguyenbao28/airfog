@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:mist_app/home.dart';
 import 'package:mist_app/theme/colors.dart';
@@ -18,26 +20,38 @@ class _Loading extends State<Loading> {
   Future<void> getUser() async {
     WidgetsFlutterBinding.ensureInitialized();
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    email = prefs.getString('email');
+    email = prefs.getString('email').toString();
     loadApiKey();
   }
 
   loadApiKey() async {
-    account.doc('$email').get().then((DocumentSnapshot documentSnapshot) {
-      id = documentSnapshot['apikey'].toString();
-      if (id != ''){
-        SwitchWidget(true);
-      } else SwitchWidget(false);
-    });
-  }
-
-  SwitchWidget(bool checkapi){
-    new Future.delayed(new Duration(milliseconds: 1500), () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => (email == null && !checkapi) ? Login() : Home()),
-      );
-    });
+    if (email == null){
+      new Future.delayed(new Duration(milliseconds: 1500), () {
+        Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => Login()
+            ));
+      });
+    }
+    if (email != null){
+      int dem = 0;
+      account.doc('$email').get().then((DocumentSnapshot documentSnapshot) {
+        do {
+          setState(() {
+            id = documentSnapshot['apikey'].toString();
+          });
+          dem++;
+        }
+        while (id == '' && dem < 10000);
+        if (id != ''){
+          new Future.delayed(new Duration(milliseconds: 1500), () {
+            Navigator.push(
+                context, MaterialPageRoute(builder: (context) => Home())
+            );
+          });
+        }
+      });
+    }
   }
 
   @override

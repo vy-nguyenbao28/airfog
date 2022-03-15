@@ -14,7 +14,6 @@ import 'package:http/http.dart' as http;
 import 'package:connectivity/connectivity.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:mist_app/theme/namedisplay_and_id.dart';
 
 class TimerApp extends StatefulWidget {
   const TimerApp({Key? key}) : super(key: key);

@@ -6,7 +6,6 @@ import 'package:flutter/widgets.dart';
 import 'package:mist_app/theme/colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity/connectivity.dart';
-import 'package:mist_app/theme/namedisplay_and_id.dart';
 import '../theme/user_manual.dart';
 import 'package:dio/dio.dart';
 import 'package:date_time/date_time.dart';

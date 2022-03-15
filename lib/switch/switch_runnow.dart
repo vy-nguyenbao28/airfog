@@ -11,7 +11,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:mist_app/theme/colors.dart';
 import 'package:mist_app/theme/constant.dart';
 import 'package:mist_app/network_request/user_model.dart';
-import 'package:mist_app/theme/namedisplay_and_id.dart';
 import '../counttime.dart';
 import 'package:http/http.dart' as http;
 import 'package:connectivity/connectivity.dart';

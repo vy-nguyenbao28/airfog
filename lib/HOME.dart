@@ -33,7 +33,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   List<CheckConnect>? modelconnect;
-  Timer? timerLoadData;
 
   CollectionReference machine = FirebaseFirestore.instance.collection('$id');
 
@@ -44,7 +43,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
   void getDataHttp() async {
     var response = await Dio().getUri(Uri.http('192.168.16.2', '/getweighttemp', {'api_key': '$id'}));
-    //var response = await Dio().getUri(Uri.http('61add905d228a9001703afe3.mockapi.io', '/api/vyii'));
     if (response.statusCode == 200){
       List<dynamic> body = cnv.jsonDecode(response.data);
       model = body.map((dynamic item) => UserModel.fromJson(item)).cast<UserModel>().toList();
@@ -52,7 +50,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         temp = int.parse(model![0].temp.toString());
         loadcell = int.parse(model![0].loadcell.toString());
       });
-      if (model![0].data.toString() == '1' && !checkData){
+      if (model![0].data.toString() == '1' && checkData){
         setState(() {
           checkData = true;
         });
@@ -71,7 +69,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             });
         }
       }
-    } else print('chưa có');
+    }
   }
 
   updateHistoryToFireStore() async {
@@ -80,7 +78,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
       doc('${modelconnect![0].monthstart}').
       collection('${modelconnect![0].daystart}').get();
     List<DocumentSnapshot> _myDocCount = querySnapshot.docs;
-    print('${_myDocCount.length}');
     int seconds = int.parse(modelconnect![0].runtime.toString()) % 60;
     int minutes = (int.parse(modelconnect![0].runtime.toString()) % (3600)) ~/ 60;
     int hours = int.parse(modelconnect![0].runtime.toString()) ~/ (3600);
@@ -97,7 +94,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
   @override
   void initState() {
-    timerLoadData = Timer.periodic(Duration(seconds: 3), (Timer t) async {
+    Timer.periodic(Duration(seconds: 3), (Timer t) async {
       getDataHttp();
     });
     super.initState();
@@ -110,7 +107,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     _tabController.dispose();
   }
 
-  CollectionReference login = FirebaseFirestore.instance.collection('login');
   @override
   Widget build(BuildContext context) {
     double font = MediaQuery.of(context).size.width / 5 * 0.125;
@@ -137,9 +133,20 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 size: 30,
                 color: Colors.white,
               ),
-              onPressed: () async{
-                Navigator.of(context).push(MaterialPageRoute(
-                    builder: (BuildContext context) => QRScan()));
+              onPressed: () async {
+                // var response = await Dio().getUri(Uri.http('61add905d228a9001703afe3.mockapi.io', '/api/vyii'));
+                // if (response.statusCode == 200){
+                //   List<dynamic> body = cnv.jsonDecode(response.data);
+                //   model = body.map((dynamic item) => UserModel.fromJson(item)).cast<UserModel>().toList();
+                //   setState(() {
+                //     temp = int.parse(model![0].temp.toString());
+                //     loadcell = int.parse(model![0].loadcell.toString());
+                //   });
+                // } else print('chưa có');
+                print('loadcell = $loadcell');
+                print('temp = $temp');
+                // Navigator.of(context).push(MaterialPageRoute(
+                //     builder: (BuildContext context) => QRScan()));
               },
             ),
           ],
@@ -348,13 +355,15 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       fontSize: 23,
                       fontWeight: FontWeight.w500,color: Colors.red)),
               onPressed: () async {
-                SharedPreferences prefs = await SharedPreferences.getInstance();
-                prefs.remove('email');
-                FirebaseAuth.instance.signOut();
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => Login()),
                 );
+                SharedPreferences prefs = await SharedPreferences.getInstance();
+                Future.delayed(new Duration(milliseconds: 3000), () {
+                  FirebaseAuth.instance.signOut();
+                  prefs.remove('email');
+                });
               },
             )),
             CupertinoDialogAction(child: TextButton(

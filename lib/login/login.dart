@@ -11,7 +11,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mist_app/theme/constant.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:mist_app/theme/namedisplay_and_id.dart';
 
 class Login extends StatefulWidget {
   @override
@@ -389,25 +388,32 @@ class _Login extends State<Login> {
           email: textAccount.text, password: textPass.text);
       if (user.user!.emailVerified) {
         if (!checkPassFaild && !checkAccountFaild && !checkSignInFaild){
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (contex) => Home(),
-            ),
-          );
-          account.doc('${textAccount.text}').get().then((DocumentSnapshot documentSnapshot) {
-            setState(() {
-              id = documentSnapshot['apikey'].toString();
-            });
-            account.doc('${textAccount.text}').set({
-              'password': '${textPass.text}',
-              'apikey': documentSnapshot['apikey'].toString(),
-              'name': user.user!.displayName
-            });
+          int dem = 0;
+          account.doc('${textAccount.text}').get().then((DocumentSnapshot documentSnapshot) async {
+            do {
+              setState(() {
+                id = documentSnapshot['apikey'].toString();
+              });
+              dem++;
+            }
+            while (id == '' && dem < 10000);
+            if (id != ''){
+              account.doc('${textAccount.text}').set({
+                'password': '${textPass.text}',
+                'apikey': id,
+                'name': user.user!.displayName
+              });
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (contex) => Home(),
+                ),
+              );
+            }
+            if (checkBox){
+              SharedPreferences prefs = await SharedPreferences.getInstance();
+              prefs.setString('email', textAccount.text);
+            }
           });
-          if (checkBox){
-            SharedPreferences prefs = await SharedPreferences.getInstance();
-            prefs.setString('email', textAccount.text);
-          }
         }
       }
       else {
@@ -463,6 +469,19 @@ class _Login extends State<Login> {
       }
       Navigator.of(context).pop();
     }
+  }
+
+  void reLogin(String name){
+    account.doc('${textAccount.text}').get().then((DocumentSnapshot documentSnapshot) {
+      setState(() {
+        id = documentSnapshot['apikey'].toString();
+      });
+      account.doc('${textAccount.text}').set({
+        'password': '${textPass.text}',
+        'apikey': documentSnapshot['apikey'].toString(),
+        'name': name
+      });
+    });
   }
 
   Widget RegistrationButton(){

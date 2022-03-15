@@ -5,7 +5,6 @@ import 'package:mist_app/theme/colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mist_app/theme/constant.dart';
-import 'package:mist_app/theme/namedisplay_and_id.dart';
 
 class ChangePassword extends StatefulWidget {
   @override
