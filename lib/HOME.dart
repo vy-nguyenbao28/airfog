@@ -52,7 +52,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         temp = int.parse(model![0].temp.toString());
         loadcell = int.parse(model![0].loadcell.toString());
       });
-
       if (model![0].data.toString() == '1' && !checkData){
         setState(() {
           checkData = true;
@@ -62,6 +61,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           List<dynamic> body = cnv.jsonDecode(check.data);
           modelconnect = body.map((dynamic item) => CheckConnect.fromJson(item)).cast<CheckConnect>().toList();
           if (modelconnect![0].datastate.toString() == '1'){
+            updateHistoryToFireStore();
             sendData('response',{'api_key': '$id',
               'rescode':'2',  //dữ liệu đã được ghi
             });
@@ -138,10 +138,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 color: Colors.white,
               ),
               onPressed: () async{
-                getDataHttp();
-                print('$temp');
-                // Navigator.of(context).push(MaterialPageRoute(
-                //     builder: (BuildContext context) => QRScan()));
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (BuildContext context) => QRScan()));
               },
             ),
           ],

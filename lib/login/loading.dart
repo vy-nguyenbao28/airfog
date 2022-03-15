@@ -12,7 +12,6 @@ class Loading extends StatefulWidget {
 }
 
 class _Loading extends State<Loading> {
-  CollectionReference login = FirebaseFirestore.instance.collection('login');
   CollectionReference account = FirebaseFirestore.instance.collection('user');
   var email;
 
@@ -23,18 +22,20 @@ class _Loading extends State<Loading> {
     loadApiKey();
   }
 
-  loadApiKey(){
+  loadApiKey() async {
     account.doc('$email').get().then((DocumentSnapshot documentSnapshot) {
-      id = documentSnapshot['api_key'].toString();
+      id = documentSnapshot['apikey'].toString();
+      if (id != ''){
+        SwitchWidget(true);
+      } else SwitchWidget(false);
     });
-    SwitchWidget();
   }
 
-  SwitchWidget(){
+  SwitchWidget(bool checkapi){
     new Future.delayed(new Duration(milliseconds: 1500), () {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => email == null ? Login() : Home()),
+        MaterialPageRoute(builder: (context) => (email == null && !checkapi) ? Login() : Home()),
       );
     });
   }

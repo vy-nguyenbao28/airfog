@@ -233,7 +233,7 @@ class _PersonalPage extends State<PersonalPage> {
           Container(
             width: sizewith * 0.63 - 15,
             child: (Saved)
-                ? SizedBox(height: font + 3, child: ChangeUserName())
+                ? Center(child: ChangeUserName())
                 : Text("${FirebaseAuth.instance.currentUser!.displayName}",
                 style: TextStyle(fontSize: font),
                 overflow: TextOverflow.visible, maxLines: 1, softWrap: false),
@@ -283,7 +283,7 @@ class _PersonalPage extends State<PersonalPage> {
           Container(
             width: sizewith * 0.63 - 15,
             child: (Saved)
-                ? SizedBox(height: font + 3, child: ChangeMachineName())
+                ? Center(child: ChangeMachineName())
                 : Text("${machinename}", style: TextStyle(fontSize: font),
               overflow: TextOverflow.fade, maxLines: 1, softWrap: false))
         ],
@@ -733,9 +733,6 @@ class _PersonalPage extends State<PersonalPage> {
         isDense: true,
         fillColor: Colors.white,
         border: InputBorder.none,
-        // hintStyle: TextStyle(fontSize: 17,
-        //     color: AppColors.tertiary),
-        // hintText: 'Tên người dùng',
         contentPadding: EdgeInsets.fromLTRB(0,0,0,0),
       ),
       style: TextStyle(fontSize: font, height: 1.2, color: AppColors.tertiary),

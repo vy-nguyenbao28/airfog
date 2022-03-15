@@ -51,12 +51,14 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
   CollectionReference machine = FirebaseFirestore.instance.collection('$id');
 
 
-  updateHistoryToFireStore(String yearstart, String monthstart, String daystart, String timestart, String runtime, String errorcode) async {
+  updateHistoryToFireStore(String yearstart, String monthstart, String daystart, String timestart, int runtime, String errorcode) async {
     QuerySnapshot querySnapshot = await machine.doc('history').
       collection(yearstart).
       doc(monthstart).
       collection(daystart).get();
-
+    int seconds = runtime % 60;
+    int minutes = (runtime % (3600)) ~/ 60;
+    int hours = runtime ~/ (3600);
     List<DocumentSnapshot> _myDocCount = querySnapshot.docs;
     machine.doc('history').
       collection(yearstart).
@@ -64,7 +66,7 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
       collection(daystart).doc('${_myDocCount.length}').set({
         'date_created': '$yearstart/$monthstart/$daystart $timestart',
         'room_name': 'Chạy nhanh',
-        'run_time': '${runtime.padLeft(2, '0')}:${runtime.padLeft(2, '0')}:${runtime.padLeft(2, '0')}',
+        'run_time': '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
         'status': errorcode
     });
   }
@@ -76,7 +78,7 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
         if (timeUp == 0) {
           status = 'Hoàn thành';
           sendData('stop',{'api_key': '$id', 'stopcode':'0'});
-          updateHistoryToFireStore(year.toString(), month.toString(), day.toString(), time.toString(), timePhun.toString(),'1');
+          updateHistoryToFireStore(year.toString(), month.toString(), day.toString(), time.toString(), timePhun,'1');
           //FlutterRingtonePlayer.playNotification();
           Navigator.of(context).pop();
           showDialog(
@@ -220,7 +222,7 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
           errorDisplay(context, 'Quá tải nhiệt !!!');
         });
         timeUp = timePhun - timeUp;
-        updateHistoryToFireStore(year.toString(), month.toString(), day.toString(), time.toString(), timeUp.toString(),'3');
+        updateHistoryToFireStore(year.toString(), month.toString(), day.toString(), time.toString(), timeUp,'3');
         timePhun = 0;
         isActive = false;
         //sendData('stop',{'api_key': '$id', 'stopcode':'0'});
@@ -233,7 +235,7 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
           errorDisplay(context, 'Hết hóa chất !!!');
         });
         timeUp = timePhun - timeUp;
-        updateHistoryToFireStore(year.toString(), month.toString(), day.toString(), time.toString(), timeUp.toString(),'4');
+        updateHistoryToFireStore(year.toString(), month.toString(), day.toString(), time.toString(), timeUp,'4');
         timePhun = 0;
         isActive = false;
         sendData('stop',{'api_key': '$id', 'stopcode':'1'});
@@ -445,7 +447,7 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
                           onPressed: (){
                             setState(() {
                               timeUp = timePhun - timeUp;
-                              updateHistoryToFireStore(year.toString(), month.toString(), day.toString(), time.toString(), timeUp.toString(),'2');
+                              updateHistoryToFireStore(year.toString(), month.toString(), day.toString(), time.toString(), timeUp,'2');
                               timePhun = 0;
                               isActive = false;
                               sendData('stop',{'api_key': '$id', 'stopcode':'1'});

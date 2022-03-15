@@ -314,7 +314,6 @@ class _QRScan extends State<QRScan> with SingleTickerProviderStateMixin{
                             _) {
                           if (secondsPassed == 0 && !checkStatus) {
                             timePhun = timeQr;
-                            Navigator.pop(context);
                             machine.doc('user').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
                               sendData('start',{'api_key': '${id}',
                                 'speed':'$speed',  //cần sửa do đây là chạy nhanh ko có
@@ -322,11 +321,15 @@ class _QRScan extends State<QRScan> with SingleTickerProviderStateMixin{
                                 'time':'$timePhun',
                               });
                             });
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => TimerApp()),
-                            );
+                            Navigator.pop(context);
+                            checkBell();
+                            Future.delayed(Duration(seconds: 5), () async {
+                              Navigator.of(context).pop();
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => TimerApp()),
+                              );
+                            });
                             timer!.cancel;
                           };
                         });
@@ -379,7 +382,6 @@ class _QRScan extends State<QRScan> with SingleTickerProviderStateMixin{
                               timePhun = timeQr;
                               result = null;
                               timer!.cancel;
-                              Navigator.pop(context);
                               machine.doc('user').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
                                 sendData('start',{'api_key': '$id',
                                   'speed':'$speed',  //cần sửa do đây là chạy nhanh ko có
@@ -387,11 +389,15 @@ class _QRScan extends State<QRScan> with SingleTickerProviderStateMixin{
                                   'time':'$timePhun',
                                 });
                               });
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => TimerApp()),
-                              );
+                              Navigator.pop(context);
+                              checkBell();
+                              Future.delayed(Duration(seconds: 5), () async {
+                                Navigator.of(context).pop();
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => TimerApp()),
+                                );
+                              });
                             },
                             child: Container(
                               width: 100,
@@ -452,6 +458,10 @@ class _QRScan extends State<QRScan> with SingleTickerProviderStateMixin{
         },
       );
     });
+  }
+
+  void checkBell(){
+
   }
 
   Widget Options(){

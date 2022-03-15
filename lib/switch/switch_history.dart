@@ -338,17 +338,17 @@ class _SwitchHistory extends State<SwitchHistory> {
                         ? (history.length != 0)
                             ? Column(
                                 children: history.map((value){
-                                  return SizedBox(
-                                      height: int.parse(value.sum.toString()) * 115,
-                                      child: ListView.builder(
-                                        physics: NeverScrollableScrollPhysics(),
-                                        padding: EdgeInsets.zero,
-                                        scrollDirection: Axis.vertical,
-                                        itemCount: value.sum,
-                                        itemBuilder: (context, index) =>
-                                            HistoryCard(index, value.year!, value.month!, value.day!, int.parse(value.sum.toString())),
-                                      )
-                                  );
+                                    return SizedBox(
+                                        height: int.parse(value.sum.toString()) * 118,
+                                        child: ListView.builder(
+                                          physics: NeverScrollableScrollPhysics(),
+                                          padding: EdgeInsets.zero,
+                                          scrollDirection: Axis.vertical,
+                                          itemCount: value.sum,
+                                          itemBuilder: (context, index) =>
+                                              HistoryCard(index, value.year!, value.month!, value.day!, int.parse(value.sum.toString())),
+                                        )
+                                    );
                                 }).toList(),
                               )
                             : Center(child: Text('Không có lịch sử', style: TextStyle(fontSize: 30), textAlign: TextAlign.center))
@@ -369,15 +369,16 @@ class _SwitchHistory extends State<SwitchHistory> {
 
   Widget HistoryCard(int index, int year, int month, int day, int sum) {
     return Container(
+      height: 108,
         margin: EdgeInsets.only(right: 10, top: 0, bottom: 10, left: 10),
         padding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
             color: Colors.white,
-            // border: Border.all(
-            //   color: AppColors.primary,
-            //   width: 1.5, //                   <--- border width here
-            // ),
+            border: Border.all(
+              color: AppColors.primary,
+              width: 1.5, //                   <--- border width here
+            ),
             boxShadow: [
               BoxShadow(
                 color: AppColors.lighterGray,

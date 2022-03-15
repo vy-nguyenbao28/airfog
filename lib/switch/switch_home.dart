@@ -206,6 +206,16 @@ class _SwitchHome extends State<SwitchHome>
                     style:
                     TextStyle(fontWeight: FontWeight.w700, fontSize: 25)),
                 addUserButton(),
+                IconButton(
+                  icon: Icon(Icons.send),
+                  onPressed: () async {
+                    final snapshot = await FirebaseFirestore.instance.collection('names').get();
+                    final documents = snapshot.docs;
+                    print(documents); // error
+                    print(documents); // []
+                  },
+                )
+
               ],
             )),
         SizedBox(
@@ -799,6 +809,194 @@ class _SwitchHome extends State<SwitchHome>
 
   void StartProgram(int index) {
     bool checkStatus = false;
+    if (((timePhun * checkFlow) / 60 - loadcell > 0) || temp >= checkTemp){
+      checkStatus = true;
+    }
+    if ((timePhun * checkFlow) / 60 - loadcell < 0 && (temp < checkTemp)){
+      checkStatus = false;
+    };
+    if (!checkStatus){
+      _startTimer();
+    }
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) => StatefulBuilder(builder: (context, StateSetter setState){
+        return SimpleDialog(
+          contentPadding: EdgeInsets.only(left: 10, right: 10, bottom: 15),
+          titlePadding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
+          title: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                !checkStatus
+                    ? Image.asset('assets/checked.png',width: 60)
+                    : Image.asset('assets/error.png',width: 60),
+                SizedBox(height: 10),
+                !checkStatus
+                    ? Text('Tiến hành phun sau',
+                    style: TextStyle(color: AppColors.tertiary, fontSize: 20))
+                    : Text('Phát hiện lỗi',
+                    style: TextStyle(color: Colors.red, fontSize: 20)),
+                Container(
+                  margin: EdgeInsets.fromLTRB(30,10,30,0),
+                  height: 1.5,
+                  color: Color(0xffDDDDDD),
+                )
+              ]),
+          children: <Widget>[
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                (!checkStatus)
+                    ? StreamBuilder<int>(
+                    stream: _events!.stream,
+                    builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
+                      SchedulerBinding.instance!.addPostFrameCallback((_) {
+                        if (secondsPassed == 0 && !checkStatus) {
+                          //FlutterRingtonePlayer.playNotfication();
+                          machine.doc('program').collection('program').doc('${counter - index - 1}').get().then((DocumentSnapshot documentSnapshot) {
+                            int speed = int.parse(documentSnapshot['speed'].toString());
+                            machine.doc('program').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
+                              makeDio('start',{'api_key': '$id',
+                                'speed':'$speed',
+                                'flow':'${documentSnapshot['flow'].toString()}',
+                                'time':'$timePhun',
+                              });
+                            });
+                          });
+                          Navigator.pop(context);
+                          checkBell();
+                          Future.delayed(Duration(seconds: 5), () async {
+                            Navigator.of(context).pop();
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => TimerApp()),
+                            );
+                          });
+                          timer!.cancel;
+                        };
+                      });
+                      return timeApp(counter - index - 1, checkStatus);
+                    })
+                    : Container(),
+                statusCard(timePhun,checkFlow, checkTemp),
+                SizedBox(height: 10),
+                (checkStatus)
+                    ? Center(
+                  child:ClipRRect(
+                    borderRadius: BorderRadius.circular(25),
+                    child: Material(
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.pop(context);
+                          timer!.cancel();
+                        },
+                        child: Container(
+                          width: 200,
+                          height: 50,
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(25),
+                              color: Colors.red
+                          ),
+                          child: Center(
+                              child: Text(
+                                'Xác nhận',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold),
+                              )),
+                        ),
+                      ),
+                    ),
+                  ),
+                )
+                    : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(25),
+                      child: Material(
+                        child: InkWell(
+                          onTap: () {
+                            machine.doc('program').collection('program').doc('${counter - index - 1}').get().then((DocumentSnapshot documentSnapshot) {
+                              int speed = int.parse(documentSnapshot['speed'].toString());
+                              machine.doc('program').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
+                                makeDio('start',{'api_key': '$id',
+                                  'speed':'$speed',
+                                  'flow':'${documentSnapshot['flow'].toString()}',
+                                  'time':'$timePhun',
+                                });
+                              });
+                            });
+                            timer!.cancel;
+                            Navigator.pop(context);
+                            checkBell();
+                            Future.delayed(Duration(seconds: 5), () async {
+                              Navigator.of(context).pop();
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => TimerApp()),
+                              );
+                            });
+                          },
+                          child: Container(
+                            width: 100,
+                            height: 50,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(25),
+                                color: AppColors.tertiary
+                            ),
+                            child: Center(
+                                child: Text(
+                                  'Bắt đầu',
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold),
+                                )),
+                          ),
+                        ),
+                      ),
+                    ),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(25),
+                      child: Material(
+                        child: InkWell(
+                          onTap: () {
+                            timer!.cancel;
+                            Navigator.pop(context);
+                          },
+                          child: Container(
+                            width: 100,
+                            height: 50,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(25),
+                                color: AppColors.tertiary
+                            ),
+                            child: Center(
+                                child: Text(
+                                  'Hủy bỏ',
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold),
+                                )),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              ],
+            )
+          ],
+        );
+      }),
+    );
+  }
+
+  void checkBell(){
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -827,186 +1025,6 @@ class _SwitchHome extends State<SwitchHome>
         );
       },
     );
-    Future.delayed(Duration(seconds: 5), () async {
-      Navigator.of(context).pop();
-      if (((timePhun * checkFlow) / 60 - loadcell > 0) || temp >= checkTemp){
-        checkStatus = true;
-      }
-      if ((timePhun * checkFlow) / 60 - loadcell < 0 && (temp < checkTemp)){
-        checkStatus = false;
-      };
-      if (!checkStatus){
-        _startTimer();
-      }
-      showDialog(
-          barrierDismissible: false,
-          context: context,
-          builder: (BuildContext context) => StatefulBuilder(builder: (context, StateSetter setState){
-            return SimpleDialog(
-              contentPadding: EdgeInsets.only(left: 10, right: 10, bottom: 15),
-              titlePadding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
-              title: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    !checkStatus
-                        ? Image.asset('assets/checked.png',width: 60)
-                        : Image.asset('assets/error.png',width: 60),
-                    SizedBox(height: 10),
-                    !checkStatus
-                        ? Text('Tiến hành phun sau',
-                        style: TextStyle(color: AppColors.tertiary, fontSize: 20))
-                        : Text('Phát hiện lỗi',
-                        style: TextStyle(color: Colors.red, fontSize: 20)),
-                    Container(
-                      margin: EdgeInsets.fromLTRB(30,10,30,0),
-                      height: 1.5,
-                      color: Color(0xffDDDDDD),
-                    )
-                  ]),
-              children: <Widget>[
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    (!checkStatus)
-                        ? StreamBuilder<int>(
-                        stream: _events!.stream,
-                        builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
-                          SchedulerBinding.instance!.addPostFrameCallback((_) {
-                            if (secondsPassed == 0 && !checkStatus) {
-                              //FlutterRingtonePlayer.playNotfication();
-                              machine.doc('program').collection('program').doc('${counter - index - 1}').get().then((DocumentSnapshot documentSnapshot) {
-                                int speed = int.parse(documentSnapshot['speed'].toString());
-                                machine.doc('program').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
-                                  makeDio('start',{'api_key': '$id',
-                                    'speed':'$speed',
-                                    'flow':'${documentSnapshot['flow'].toString()}',
-                                    'time':'$timePhun',
-                                  });
-                                });
-                              });
-                              Navigator.pop(context);
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => TimerApp()),
-                              );
-                              timer!.cancel;
-                            };
-                          });
-                          return timeApp(counter - index - 1, checkStatus);
-                        })
-                        : Container(),
-                    statusCard(timePhun,checkFlow, checkTemp),
-                    SizedBox(height: 10),
-                    (checkStatus)
-                        ? Center(
-                      child:ClipRRect(
-                        borderRadius: BorderRadius.circular(25),
-                        child: Material(
-                          child: InkWell(
-                            onTap: () {
-                              Navigator.pop(context);
-                              timer!.cancel();
-                            },
-                            child: Container(
-                              width: 200,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(25),
-                                  color: Colors.red
-                              ),
-                              child: Center(
-                                  child: Text(
-                                    'Xác nhận',
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold),
-                                  )),
-                            ),
-                          ),
-                        ),
-                      ),
-                    )
-                        : Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: <Widget>[
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(25),
-                          child: Material(
-                            child: InkWell(
-                              onTap: () {
-                                machine.doc('program').collection('program').doc('${counter - index - 1}').get().then((DocumentSnapshot documentSnapshot) {
-                                  int speed = int.parse(documentSnapshot['speed'].toString());
-                                  machine.doc('program').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
-                                    makeDio('start',{'api_key': '$id',
-                                      'speed':'$speed',
-                                      'flow':'${documentSnapshot['flow'].toString()}',
-                                      'time':'$timePhun',
-                                    });
-                                  });
-                                });
-                                timer!.cancel;
-                                Navigator.pop(context);
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => TimerApp()),
-                                );
-                              },
-                              child: Container(
-                                width: 100,
-                                height: 50,
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(25),
-                                    color: AppColors.tertiary
-                                ),
-                                child: Center(
-                                    child: Text(
-                                      'Bắt đầu',
-                                      style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold),
-                                    )),
-                              ),
-                            ),
-                          ),
-                        ),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(25),
-                          child: Material(
-                            child: InkWell(
-                              onTap: () {
-                                timer!.cancel;
-                                Navigator.pop(context);
-                              },
-                              child: Container(
-                                width: 100,
-                                height: 50,
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(25),
-                                    color: AppColors.tertiary
-                                ),
-                                child: Center(
-                                    child: Text(
-                                      'Hủy bỏ',
-                                      style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold),
-                                    )),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  ],
-                )
-              ],
-            );
-          }),
-      );
-    });
   }
 
   void deleteProgram(int index){
@@ -1043,22 +1061,22 @@ class _SwitchHome extends State<SwitchHome>
                       });
                       for (int i = counter; i > counter - index; i--) {
                         getDataFireStore((i).toString(), i - 1);
-                        if (i == counter - index){
+                        if (i == counter - index + 1){
                           Timer.periodic(Duration(milliseconds: 500), (Timer t)
                           => machine.doc('program').collection('program').doc('$counter').delete());
                         }
                       }
                     }
-                    if (index == 0) {
+                    else if (index == 0) {
                       setState(() {
                         counter--;
                       });
                       machine.doc('program').collection('program').doc('$counter').delete();
                     }
-                    if (index == counter - 1) {
+                    else if (index == counter - 1 && index != 1) {
                       for (int i = 1; i <= counter - 1; i++) {
                         getDataFireStore((i).toString(), i - 1);
-                        if (i == counter){
+                        if (i == counter - 1){
                           Timer.periodic(Duration(milliseconds: 500), (Timer t)
                           => machine.doc('program').collection('program').doc('$counter').delete());
                         }
