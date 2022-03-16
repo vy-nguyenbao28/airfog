@@ -7,6 +7,7 @@ import 'package:mist_app/theme/colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mist_app/theme/constant.dart';
+import 'package:connectivity/connectivity.dart';
 
 class Registration extends StatefulWidget {
   @override
@@ -31,8 +32,44 @@ class _Registration extends State<Registration> {
   bool checkBox = false;
   bool checkButton = false;
   bool checkPassAdmin = false;
+  bool _isConnected = false;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  checkConnectivty() async{
+    var result = await Connectivity().checkConnectivity();
+    switch(result){
+      case ConnectivityResult.wifi:
+        setState(() {
+          _isConnected = true;
+        });
+        break;
+      case ConnectivityResult.mobile:
+        setState(() {
+          _isConnected = true;
+        });
+        break;
+      case ConnectivityResult.none:
+        setState(() {
+          _isConnected = false;
+        });
+    }
+  }
+
+  void notification(String s) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text('$s',
+        style: TextStyle(fontSize: 16),
+        textAlign: TextAlign.center,
+      ),
+      backgroundColor: Color(0xff898989),
+      duration: Duration(milliseconds: 1500),
+      shape: StadiumBorder(),
+      margin: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      behavior: SnackBarBehavior.floating,
+      elevation: 0,
+    ));
+  }
 
   @override
   void initState() {
@@ -41,6 +78,7 @@ class _Registration extends State<Registration> {
 
   @override
   Widget build(BuildContext context) {
+    checkConnectivty();
     return Scaffold(
       body: Container(
         margin: EdgeInsets.zero,
@@ -573,27 +611,31 @@ class _Registration extends State<Registration> {
   Widget RegistrationButton(){
     return ElevatedButton(
       onPressed: () async {
-        setState(() {
-          checkButton = true;
-        });
-        if (textPassAdmin.text != ''){
-          CollectionReference collectionReference =
-          FirebaseFirestore.instance.collection("${textPassAdmin.text}");
-          QuerySnapshot querySnapshot = await collectionReference.get();
-          if (!querySnapshot.docs.isNotEmpty){
-            setState(() {
-              checkPassAdmin = true;
-            });
-          } else
-            setState(() {
-              checkPassAdmin = false;
-            });
-        }
-        if (_formKey.currentState!.validate()) {
+        if (_isConnected == false) {
+          notification('Không có kết nối Internet !!!');
+        } else {
           setState(() {
-            id = textPassAdmin.text;
+            checkButton = true;
           });
-          SendAcount();
+          if (textPassAdmin.text != ''){
+            CollectionReference collectionReference =
+            FirebaseFirestore.instance.collection("${textPassAdmin.text}");
+            QuerySnapshot querySnapshot = await collectionReference.get();
+            if (!querySnapshot.docs.isNotEmpty){
+              setState(() {
+                checkPassAdmin = true;
+              });
+            } else
+              setState(() {
+                checkPassAdmin = false;
+              });
+          }
+          if (_formKey.currentState!.validate()) {
+            setState(() {
+              id = textPassAdmin.text;
+            });
+            SendAcount();
+          }
         }
       },
       child: Container(

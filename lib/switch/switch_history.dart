@@ -319,7 +319,7 @@ class _SwitchHistory extends State<SwitchHistory> {
               Container(
                 height: 40,
                 padding: EdgeInsets.only(right: 15,left: 23),
-                margin: EdgeInsets.only(bottom: 3),
+                margin: EdgeInsets.only(bottom: 3, top: 4),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -470,7 +470,7 @@ class _SwitchHistory extends State<SwitchHistory> {
         if (_isConnected == false){
           notification('Không có kết nối Internet !!!');
         }
-        else if (_isConnected == true){
+        else {
           final inputs = ['a', 'b', 'c', 'd', 'e', 'f'];
           final indexes = inputs.mapIndexed((index, element) => index).toList();
 

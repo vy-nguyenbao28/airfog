@@ -58,14 +58,16 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
     int seconds = runtime % 60;
     int minutes = (runtime % (3600)) ~/ 60;
     int hours = runtime ~/ (3600);
+    String date_created = '$yearstart/${monthstart.toString().padLeft(2, '0')}/${daystart.toString().padLeft(2, '0')}';
+    String run_time = '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
     List<DocumentSnapshot> _myDocCount = querySnapshot.docs;
     machine.doc('history').
       collection(yearstart).
       doc(monthstart).
       collection(daystart).doc('${_myDocCount.length}').set({
-        'date_created': '$yearstart/$monthstart/$daystart $timestart',
+        'date_created': '$date_created $timestart',
         'room_name': 'Chạy nhanh',
-        'run_time': '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
+        'run_time': '$run_time',
         'status': errorcode
     });
   }
@@ -149,7 +151,7 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
   }
 
   void checkError() {
-    machine.doc('user').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
+    machine.doc('program').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
       if(temp > int.parse(documentSnapshot['temp'].toString())){
         setState(() {
           checkErrorTemp = true;
@@ -182,7 +184,7 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
     year = dateTime.year;
     month = dateTime.month;
     day = dateTime.day;
-    time = '${dateTime.hour}:${dateTime.minute}:${dateTime.second}';
+    time = '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}:${dateTime.second.toString().padLeft(2, '0')}';
     super.initState();
     timerLoadData = Timer.periodic(Duration(seconds: 3), (Timer t) {
       checkError();
@@ -518,10 +520,7 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
               children: [
                 (error == 'Quá tải nhiệt !!!')
                     ? Image.asset('assets/temp.png',width: 100)
-                    : Container(),
-                (error == 'Hết hóa chất !!!')
-                    ? Image.asset('assets/error-water-level.png',width: 100)
-                    : Container(),
+                    : Image.asset('assets/error-water-level.png',width: 100),
                 SizedBox(height: 20),
                 Text(error,
                     style: TextStyle(fontSize: 20, color: Colors.red)),

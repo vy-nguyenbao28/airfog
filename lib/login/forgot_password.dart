@@ -5,6 +5,7 @@ import 'package:mist_app/login/login.dart';
 import 'package:mist_app/theme/colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:connectivity/connectivity.dart';
 
 class ForgotPassword extends StatefulWidget {
   @override
@@ -15,14 +16,51 @@ class _ForgotPassword extends State<ForgotPassword> {
   final textEmail = TextEditingController();
 
   bool colorEmail = false;
+  bool _isConnected = false;
   bool checkButton = false;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   CollectionReference user = FirebaseFirestore.instance.collection('user');
 
+  checkConnectivty() async{
+    var result = await Connectivity().checkConnectivity();
+    switch(result){
+      case ConnectivityResult.wifi:
+        setState(() {
+          _isConnected = true;
+        });
+        break;
+      case ConnectivityResult.mobile:
+        setState(() {
+          _isConnected = true;
+        });
+        break;
+      case ConnectivityResult.none:
+        setState(() {
+          _isConnected = false;
+        });
+    }
+  }
+
+  void notification(String s) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text('$s',
+        style: TextStyle(fontSize: 16),
+        textAlign: TextAlign.center,
+      ),
+      backgroundColor: Color(0xff898989),
+      duration: Duration(milliseconds: 1500),
+      shape: StadiumBorder(),
+      margin: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      behavior: SnackBarBehavior.floating,
+      elevation: 0,
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
+    checkConnectivty();
     return Scaffold(
       body: Container(
         margin: EdgeInsets.zero,
@@ -149,11 +187,15 @@ class _ForgotPassword extends State<ForgotPassword> {
   Widget RegistrationButton(){
     return ElevatedButton(
       onPressed: () {
-        setState(() {
-          checkButton = true;
-        });
-        if (_formKey.currentState!.validate()) {
-          SendAcount();
+        if (_isConnected == false) {
+          notification('Không có kết nối Internet !!!');
+        } else {
+          setState(() {
+            checkButton = true;
+          });
+          if (_formKey.currentState!.validate()) {
+            SendAcount();
+          }
         }
       },
       child: Container(

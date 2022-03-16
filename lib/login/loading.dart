@@ -14,6 +14,7 @@ class Loading extends StatefulWidget {
 }
 
 class _Loading extends State<Loading> {
+
   bool _isConnected = false;
 
   CollectionReference account = FirebaseFirestore.instance.collection('user');
@@ -58,12 +59,13 @@ class _Loading extends State<Loading> {
     WidgetsFlutterBinding.ensureInitialized();
     SharedPreferences prefs = await SharedPreferences.getInstance();
     email = prefs.getString('email');
-    loadApiKey();
+    if (_isConnected == false) {
+      notification('Không có kết nối Internet !!!');
+    } else loadApiKey();
   }
 
   loadApiKey() async {
     if (email == null){
-      print('vào login');
       new Future.delayed(new Duration(milliseconds: 1500), () {
         Navigator.push(
             context,
@@ -94,6 +96,7 @@ class _Loading extends State<Loading> {
 
   @override
   void initState() {
+    checkConnectivty();
     getUser();
     super.initState();
   }

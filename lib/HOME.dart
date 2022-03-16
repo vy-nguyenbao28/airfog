@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:ui';
 import 'dart:convert' as cnv;
 import 'package:flutter/cupertino.dart';
@@ -29,8 +30,9 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
-  //TabBar
   late TabController _tabController;
+
+  DateTime pre_backpress = DateTime.now();
 
   List<CheckConnect>? modelconnect;
 
@@ -112,7 +114,31 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     double font = MediaQuery.of(context).size.width / 5 * 0.125;
-    return Scaffold(
+    return WillPopScope(
+      onWillPop: () async {
+        final timeout = DateTime.now().difference(pre_backpress);
+        final cantExit = timeout >= Duration(seconds: 2);
+        pre_backpress = DateTime.now();
+        if (!cantExit){
+          exit(0);
+        }
+        else {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Bấm lần nữa để thoát',
+              style: TextStyle(fontSize: 16),
+              textAlign: TextAlign.center,
+            ),
+            backgroundColor: Color(0xff898989),
+            duration: Duration(seconds: 2),
+            shape: StadiumBorder(),
+            margin: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+            behavior: SnackBarBehavior.floating,
+            elevation: 0,
+          ));
+          return false;
+        }
+      },
+      child: Scaffold(
         backgroundColor: Color(0xffF8F8FF),
         appBar: AppBar(
           automaticallyImplyLeading: true,
@@ -137,7 +163,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               ),
               onPressed: () async {
                 Navigator.of(context).push(MaterialPageRoute(
-                     builder: (BuildContext context) => QRScan()));
+                    builder: (BuildContext context) => QRScan()));
               },
             ),
           ],
@@ -219,6 +245,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 ),
               ],
             )),
+      )
     );
   }
 

@@ -14,6 +14,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
 import 'package:mist_app/network_request/user_model.dart';
 import 'package:mist_app/check_connect.dart';
+import 'package:connectivity/connectivity.dart';
 
 class Login extends StatefulWidget {
   @override
@@ -24,6 +25,7 @@ class _Login extends State<Login> {
   final textAccount = TextEditingController();
   final textPass = TextEditingController();
 
+  bool _isConnected = false;
   bool _passwordVisible = false;
   bool colorAccount = false;
   bool colorPass = false;
@@ -37,8 +39,44 @@ class _Login extends State<Login> {
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
+  checkConnectivty() async{
+    var result = await Connectivity().checkConnectivity();
+    switch(result){
+      case ConnectivityResult.wifi:
+        setState(() {
+          _isConnected = true;
+        });
+        break;
+      case ConnectivityResult.mobile:
+        setState(() {
+          _isConnected = true;
+        });
+        break;
+      case ConnectivityResult.none:
+        setState(() {
+          _isConnected = false;
+        });
+    }
+  }
+
+  void notification(String s) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text('$s',
+        style: TextStyle(fontSize: 16),
+        textAlign: TextAlign.center,
+      ),
+      backgroundColor: Color(0xff898989),
+      duration: Duration(milliseconds: 1500),
+      shape: StadiumBorder(),
+      margin: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      behavior: SnackBarBehavior.floating,
+      elevation: 0,
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
+    checkConnectivty();
     return Scaffold(
         body: Container(
           margin: EdgeInsets.zero,
@@ -300,23 +338,31 @@ class _Login extends State<Login> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Checkbox(
-              checkColor: AppColors.tertiary,
-              fillColor: MaterialStateProperty.resolveWith(getColor),
-              value: checkBox,
-              onChanged: (bool? value) {
-                setState(() {
-                  checkBox = value!;
-                });
-                print(checkBox);
-              },
+            Container(
+              margin: EdgeInsets.fromLTRB(5,0,5,0),
+              height: 20,
+              width: 20,
+              child: Checkbox(
+                checkColor: AppColors.tertiary,
+                fillColor: MaterialStateProperty.resolveWith(getColor),
+                value: checkBox,
+                onChanged: (bool? value) {
+                  setState(() {
+                    checkBox = value!;
+                  });
+                },
+              ),
             ),
             Text('Duy trì đăng nhập', style: TextStyle(color: Colors.white, fontSize: 13)),
           ],
         ),
         TextButton(
             onPressed: (){
+              if (_isConnected == false) {
+                notification('Không có kết nối Internet !!!');
+              } else
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (contex) => ForgotPassword(),
                 ),
@@ -333,15 +379,19 @@ class _Login extends State<Login> {
   Widget SignInButton(){
     return ElevatedButton(
       onPressed: () async {
-        setState(() {
-          checkButton = true;
-          checkPassFaild = false;
-          checkAccountFaild = false;
-          checkSignInFaild = false;
-        });
-        if (_formKey.currentState!.validate()) {
-          SignIn();
-        };
+        if (_isConnected == false) {
+          notification('Không có kết nối Internet !!!');
+        } else {
+          setState(() {
+            checkButton = true;
+            checkPassFaild = false;
+            checkAccountFaild = false;
+            checkSignInFaild = false;
+          });
+          if (_formKey.currentState!.validate()) {
+            SignIn();
+          };
+        }
       },
       child: Container(
           height: 50,
@@ -490,6 +540,9 @@ class _Login extends State<Login> {
   Widget RegistrationButton(){
     return OutlinedButton(
       onPressed: () {
+        if (_isConnected == false) {
+          notification('Không có kết nối Internet !!!');
+        } else
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => Registration()),

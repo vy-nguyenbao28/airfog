@@ -66,7 +66,6 @@ class _PersonalPage extends State<PersonalPage> {
   }
 
   getMachineName(){
-    CollectionReference machine = FirebaseFirestore.instance.collection('$id');
     machine.doc('machinename').get().then((DocumentSnapshot documentSnapshot) {
       setState(() {
         machinename = documentSnapshot['machinename'].toString();
@@ -232,10 +231,16 @@ class _PersonalPage extends State<PersonalPage> {
           Container(
             width: sizewith * 0.63 - 15,
             child: (Saved)
-                ? Center(child: ChangeUserName())
-                : Text("${FirebaseAuth.instance.currentUser!.displayName}",
-                style: TextStyle(fontSize: font),
-                overflow: TextOverflow.visible, maxLines: 1, softWrap: false),
+                ? ChangeUserName()
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text("${FirebaseAuth.instance.currentUser!.displayName}",
+                          style: TextStyle(fontSize: font),
+                          overflow: TextOverflow.visible, maxLines: 1, softWrap: false),
+                      Container()
+                    ],
+                  )
           ),
         ],
       ),
@@ -282,9 +287,16 @@ class _PersonalPage extends State<PersonalPage> {
           Container(
             width: sizewith * 0.63 - 15,
             child: (Saved)
-                ? Center(child: ChangeMachineName())
-                : Text("${machinename}", style: TextStyle(fontSize: font),
-              overflow: TextOverflow.fade, maxLines: 1, softWrap: false))
+                ? ChangeMachineName()
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text("${machinename}", style: TextStyle(fontSize: font),
+                          overflow: TextOverflow.fade, maxLines: 1, softWrap: false),
+                      Container()
+                    ],
+                  )
+            )
         ],
       ),
     );
@@ -726,40 +738,57 @@ class _PersonalPage extends State<PersonalPage> {
 
   Widget ChangeUserName() {
     double font = MediaQuery.of(context).size.width * 0.039;
-    return TextFormField(
-      autovalidateMode: AutovalidateMode.onUserInteraction,
-      decoration: InputDecoration(
-        isDense: true,
-        fillColor: Colors.white,
-        border: InputBorder.none,
-        contentPadding: EdgeInsets.fromLTRB(0,0,0,0),
-      ),
-      style: TextStyle(fontSize: font, height: 1.2, color: AppColors.tertiary),
-      textCapitalization: TextCapitalization.words,
-      textInputAction: TextInputAction.send,
-      controller: textUserName,
-      cursorColor: AppColors.tertiary,
-      autofocus: false,
+    return Container(
+      height: heightbox,
+      child: Stack(
+        alignment: Alignment.centerLeft,
+        children:[
+          TextFormField(
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            decoration: InputDecoration(
+              isDense: true,
+              fillColor: Colors.white,
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.fromLTRB(0,0,0,0),
+            ),
+            style: TextStyle(fontSize: font, height: 1.2, color: AppColors.tertiary),
+            textCapitalization: TextCapitalization.words,
+            textInputAction: TextInputAction.send,
+            controller: textUserName,
+            cursorColor: AppColors.tertiary,
+            autofocus: false,
+          ),
+          Container()
+        ]
+      )
     );
   }
 
   Widget ChangeMachineName() {
     double font = MediaQuery.of(context).size.width * 0.039;
-    return TextFormField(
-      autovalidateMode: AutovalidateMode.onUserInteraction,
-      decoration: InputDecoration(
-        isDense: true,
-        fillColor: Colors.white,
-        border: InputBorder.none,
-        contentPadding: EdgeInsets.fromLTRB(0,0,0,0),
-      ),
-      style: TextStyle(fontSize: font, height: 1.2, color: AppColors.tertiary),
-      textCapitalization: TextCapitalization.words,
-      textInputAction: TextInputAction.send,
-      controller: textMachinaName,
-      cursorColor: AppColors.tertiary,
-      autofocus: false,
-
+    return Container(
+      height: heightbox,
+      child: Stack(
+          alignment: Alignment.centerLeft,
+          children:[
+            TextFormField(
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              decoration: InputDecoration(
+                isDense: true,
+                fillColor: Colors.white,
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.fromLTRB(0,0,0,0),
+              ),
+              style: TextStyle(fontSize: font, height: 1.2, color: AppColors.tertiary),
+              textCapitalization: TextCapitalization.words,
+              textInputAction: TextInputAction.send,
+              controller: textMachinaName,
+              cursorColor: AppColors.tertiary,
+              autofocus: false,
+            ),
+            Container()
+          ]
+      )
     );
   }
 
