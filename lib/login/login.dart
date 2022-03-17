@@ -15,6 +15,8 @@ import 'package:dio/dio.dart';
 import 'package:mist_app/network_request/user_model.dart';
 import 'package:mist_app/check_connect.dart';
 import 'package:connectivity/connectivity.dart';
+import 'package:mist_app/check_connect.dart';
+import 'package:mist_app/theme/constant.dart';
 
 class Login extends StatefulWidget {
   @override
@@ -35,7 +37,10 @@ class _Login extends State<Login> {
   bool checkAccountFaild = false;
   bool checkSignInFaild = false;
 
+  List<CheckConnect>? modelconnect;
+
   CollectionReference account = FirebaseFirestore.instance.collection('user');
+  CollectionReference machine = FirebaseFirestore.instance.collection('$id');
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -72,6 +77,63 @@ class _Login extends State<Login> {
       behavior: SnackBarBehavior.floating,
       elevation: 0,
     ));
+  }
+  int demcheckdata = 0;
+
+  void getDataHttp(String id) async {
+    var response = await Dio().getUri(Uri.http('192.168.16.2', '/getweighttemp', {'api_key': '$id'}));
+    if (response.statusCode == 200){
+      List<dynamic> body = cnv.jsonDecode(response.data);
+      model = body.map((dynamic item) => UserModel.fromJson(item)).cast<UserModel>().toList();
+      setState(() {
+        temp = int.parse(model![0].temp.toString());
+        loadcell = int.parse(model![0].loadcell.toString());
+      });
+
+      if (model![0].loadcell.toString() == '1'){
+        while (demcheckdata < 1){
+          demcheckdata++;
+          var check = await Dio().getUri(Uri.http('192.168.16.2', '/checkconnect', {'api_key': '$id'}));
+          if (check.statusCode == 200){
+            List<dynamic> body = cnv.jsonDecode(check.data);
+            modelconnect = body.map((dynamic item) => CheckConnect.fromJson(item)).cast<CheckConnect>().toList();
+            if (modelconnect![0].datastate.toString() == '1'){
+              updateHistoryToFireStore();
+              sendData('response',{'api_key': '$id',
+                'rescode':'2',  //dữ liệu đã được ghi
+              });
+            } else
+              sendData('response',{'api_key': '$id',
+                'rescode':'1',   //dữ liệu chưa được ghi
+              });
+          }
+        }
+      }
+    }
+  }
+
+  updateHistoryToFireStore() async {
+    QuerySnapshot querySnapshot = await machine.doc('history').
+    collection('${modelconnect![0].monthstart}').
+    doc('${modelconnect![0].monthstart}').
+    collection('${modelconnect![0].daystart}').get();
+    List<DocumentSnapshot> _myDocCount = querySnapshot.docs;
+    int seconds = int.parse(modelconnect![0].runtime.toString()) % 60;
+    int minutes = (int.parse(modelconnect![0].runtime.toString()) % (3600)) ~/ 60;
+    int hours = int.parse(modelconnect![0].runtime.toString()) ~/ (3600);
+    machine.doc('history').
+    collection('${modelconnect![0].yearstart}').
+    doc('${modelconnect![0].monthstart}').
+    collection('${modelconnect![0].daystart}').doc('${_myDocCount.length}').set({
+      'date_created': '${modelconnect![0].yearstart}/${modelconnect![0].monthstart.toString().padLeft(2, '0')}/${modelconnect![0].daystart.toString().padLeft(2, '0')} ${modelconnect![0].timestart}',
+      'room_name': '${modelconnect![0].roomname}',
+      'run_time': '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
+      'status': '${modelconnect![0].errorcode}'
+    });
+  }
+
+  void sendData(String mode, final dataSend)async  {
+    Dio().getUri(Uri.http('192.168.16.2','/$mode',dataSend));
   }
 
   @override
@@ -451,6 +513,7 @@ class _Login extends State<Login> {
             }
             while (id == '' && dem < 10000);
             if (id != ''){
+              getDataHttp(id);
               account.doc('${textAccount.text}').set({
                 'password': '${textPass.text}',
                 'apikey': id,
@@ -461,10 +524,10 @@ class _Login extends State<Login> {
                   builder: (contex) => Home(),
                 ),
               );
-            }
-            if (checkBox){
-              SharedPreferences prefs = await SharedPreferences.getInstance();
-              prefs.setString('email', textAccount.text);
+              if (checkBox){
+                SharedPreferences prefs = await SharedPreferences.getInstance();
+                prefs.setString('email', textAccount.text);
+              }
             }
           });
         }

@@ -53,8 +53,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         temp = int.parse(model![0].temp.toString());
         loadcell = int.parse(model![0].loadcell.toString());
       });
-      do {
-        if (model![0].loadcell.toString() == '1'){
+      if (model![0].loadcell.toString() == '1'){
+        while (demcheckdata < 1){
           demcheckdata++;
           var check = await Dio().getUri(Uri.http('192.168.16.2', '/checkconnect', {'api_key': '$id'}));
           if (check.statusCode == 200){
@@ -71,7 +71,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               });
           }
         }
-      } while (demcheckdata < 1);
+      }
     }
   }
 
@@ -291,9 +291,11 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text("${FirebaseAuth.instance.currentUser!.displayName}",
-                            style: TextStyle(fontSize: font, fontWeight: FontWeight.w500, color: Colors.white)),
+                            style: TextStyle(fontSize: font, fontWeight: FontWeight.w500, color: Colors.white),
+                            overflow: TextOverflow.clip, maxLines: 1, softWrap: false),
                         Text("${FirebaseAuth.instance.currentUser!.email}",
-                            style: TextStyle(fontSize: font - 6, color: Colors.white)),
+                            style: TextStyle(fontSize: font - 6, color: Colors.white),
+                            overflow: TextOverflow.clip, maxLines: 1, softWrap: false),
                         SizedBox(height: 2)
                       ],
                     )
