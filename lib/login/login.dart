@@ -87,7 +87,7 @@ class _Login extends State<Login> {
         loadcell = int.parse(model![0].loadcell.toString());
       });
 
-      if (model![0].loadcell.toString() == '1'){
+      if (model![0].data.toString() == '1'){
         while (demcheckdata < 1){
           demcheckdata++;
           var check = await Dio().getUri(Uri.http('192.168.16.2', '/checkconnect', {'api_key': '$id'}));
