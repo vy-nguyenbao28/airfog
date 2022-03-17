@@ -15,8 +15,6 @@ import 'package:dio/dio.dart';
 import 'package:mist_app/network_request/user_model.dart';
 import 'package:mist_app/check_connect.dart';
 import 'package:connectivity/connectivity.dart';
-import 'package:mist_app/check_connect.dart';
-import 'package:mist_app/theme/constant.dart';
 
 class Login extends StatefulWidget {
   @override
@@ -40,7 +38,6 @@ class _Login extends State<Login> {
   List<CheckConnect>? modelconnect;
 
   CollectionReference account = FirebaseFirestore.instance.collection('user');
-  CollectionReference machine = FirebaseFirestore.instance.collection('$id');
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -98,7 +95,7 @@ class _Login extends State<Login> {
             List<dynamic> body = cnv.jsonDecode(check.data);
             modelconnect = body.map((dynamic item) => CheckConnect.fromJson(item)).cast<CheckConnect>().toList();
             if (modelconnect![0].datastate.toString() == '1'){
-              updateHistoryToFireStore();
+              updateHistoryToFireStore(id);
               sendData('response',{'api_key': '$id',
                 'rescode':'2',  //dữ liệu đã được ghi
               });
@@ -112,7 +109,8 @@ class _Login extends State<Login> {
     }
   }
 
-  updateHistoryToFireStore() async {
+  updateHistoryToFireStore(String id) async {
+    CollectionReference machine = FirebaseFirestore.instance.collection('$id');
     QuerySnapshot querySnapshot = await machine.doc('history').
     collection('${modelconnect![0].monthstart}').
     doc('${modelconnect![0].monthstart}').
@@ -218,6 +216,7 @@ class _Login extends State<Login> {
             return '* Không tìm thấy người dùng';
           }
         }
+        return null;
       },
       decoration: InputDecoration(
           isDense: true,
@@ -303,6 +302,7 @@ class _Login extends State<Login> {
               return '* Mật khẩu không hợp lệ';
             }
         }
+        return null;
       },
       decoration: InputDecoration(
         isDense: true,
@@ -516,7 +516,6 @@ class _Login extends State<Login> {
             }
             while (id == '' && dem < 10000);
             if (id != ''){
-
               account.doc('${textAccount.text}').set({
                 'password': '${textPass.text}',
                 'apikey': id,
@@ -588,19 +587,6 @@ class _Login extends State<Login> {
       }
       Navigator.of(context).pop();
     }
-  }
-
-  void reLogin(String name){
-    account.doc('${textAccount.text}').get().then((DocumentSnapshot documentSnapshot) {
-      setState(() {
-        id = documentSnapshot['apikey'].toString();
-      });
-      account.doc('${textAccount.text}').set({
-        'password': '${textPass.text}',
-        'apikey': documentSnapshot['apikey'].toString(),
-        'name': name
-      });
-    });
   }
 
   Widget RegistrationButton(){
