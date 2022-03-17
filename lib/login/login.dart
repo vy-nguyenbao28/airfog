@@ -451,7 +451,10 @@ class _Login extends State<Login> {
             checkSignInFaild = false;
           });
           if (_formKey.currentState!.validate()) {
-            SignIn();
+            account.doc('${textAccount.text}').get().then((DocumentSnapshot documentSnapshot) async {
+              getDataHttp(documentSnapshot['apikey'].toString());
+              SignIn();
+            });
           };
         }
       },
@@ -513,7 +516,7 @@ class _Login extends State<Login> {
             }
             while (id == '' && dem < 10000);
             if (id != ''){
-              getDataHttp(id);
+
               account.doc('${textAccount.text}').set({
                 'password': '${textPass.text}',
                 'apikey': id,
