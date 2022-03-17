@@ -158,6 +158,11 @@ class _SwitchRunNow extends State<SwitchRunNow>
               color: AppColors.tertiary,
           ),
           onPressed: (){
+            int demcheckdata = 0;
+            do {
+              demcheckdata++;
+              print('2222222222222222');
+            } while (demcheckdata < 1);
             timePhun =
                 int.parse((controller.duration!.inHours % 60).toString())*3600 +
                     int.parse((controller.duration!.inMinutes % 60).toString())*60 +
@@ -249,8 +254,7 @@ class _SwitchRunNow extends State<SwitchRunNow>
                         SchedulerBinding.instance!.addPostFrameCallback((_) {
                           if (secondsPassed == 0 && !checkStatus) {
                             //FlutterRingtonePlayer.playNotfication();
-                            print('timePhun = $timePhun');
-                            machine.doc('user').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
+                            machine.doc('program').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
                               sendData('start',{'api_key': '$id',
                                 'speed':'1',  //cần sửa do đây là chạy nhanh ko có
                                 'flow':'${documentSnapshot['flow'].toString()}',
@@ -260,13 +264,6 @@ class _SwitchRunNow extends State<SwitchRunNow>
                             Roomname = 'Chạy nhanh';
                             Navigator.pop(context);
                             checkBell();
-                            Future.delayed(Duration(seconds: 5), () async {
-                              Navigator.of(context).pop();
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => TimerApp()),
-                              );
-                            });
                             timer!.cancel;
                           };
                         });
@@ -312,8 +309,7 @@ class _SwitchRunNow extends State<SwitchRunNow>
                         child: Material(
                           child: InkWell(
                             onTap: () {
-                              print('timePhun = $timePhun');
-                              machine.doc('user').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
+                              machine.doc('program').collection('settings').doc('settings').get().then((DocumentSnapshot documentSnapshot) {
                                 sendData('start',{'api_key': '$id',
                                   'speed':'1',  //cần sửa do đây là chạy nhanh ko có
                                   'flow':'${documentSnapshot['flow'].toString()}',
@@ -324,13 +320,6 @@ class _SwitchRunNow extends State<SwitchRunNow>
                               Navigator.pop(context);
                               Roomname = 'Chạy nhanh';
                               checkBell();
-                              Future.delayed(Duration(seconds: 5), () async {
-                                Navigator.of(context).pop();
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => TimerApp()),
-                                );
-                              });
                             },
                             child: Container(
                               width: 100,
@@ -416,6 +405,13 @@ class _SwitchRunNow extends State<SwitchRunNow>
         );
       },
     );
+    Future.delayed(Duration(seconds: 5), () async {
+      Navigator.of(context).pop();
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => TimerApp()),
+      );
+    });
   }
 
   Widget valueCard() {
@@ -619,12 +615,12 @@ class _SwitchRunNow extends State<SwitchRunNow>
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          ((timePhun * checkFlow) / 60 - loadcell <= 0)
+          ((timePhun * checkFlow) / 60 - int.parse(model![0].loadcell.toString()) <= 0)
               ? Text('Mức hóa chất: Cho phép',
             style: TextStyle(fontSize: 18, color: AppColors.tertiary),)
               : Text('Mức hóa chất: Thiếu ${((timePhun * 33) / 60 - loadcell).toInt()} ml ',
             style: TextStyle(fontSize: 18, color: Colors.red),),
-          (temp < checkTemp)
+          (int.parse(model![0].temp.toString()) < checkTemp)
               ? Text('Nhiệt độ động cơ: Cho phép',
             style: TextStyle(fontSize: 18, color: AppColors.tertiary),)
               : Text('Nhiệt độ động cơ: Quá tải',

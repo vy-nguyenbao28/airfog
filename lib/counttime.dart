@@ -70,6 +70,7 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
         'run_time': '$run_time',
         'status': errorcode
     });
+    history.add(History(year: int.parse(yearstart), month: int.parse(monthstart), day: int.parse(daystart), sum: _myDocCount.length + 1));
   }
 
   void handleTick() {
@@ -294,7 +295,7 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
                         fontSize: 17,
                         fontWeight: FontWeight.w500)),
                 (model != null && _isConnected)
-                    ? Text('$temp\u1d52C',
+                    ? Text('${model![0].temp.toString()}\u1d52C',
                     style: TextStyle(
                         fontSize: 24, color: Colors.red,fontWeight: FontWeight.w400))
                     : Text('??\u1d52C',

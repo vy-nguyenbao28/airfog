@@ -52,10 +52,10 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
       setState(() {
         temp = int.parse(model![0].temp.toString());
         loadcell = int.parse(model![0].loadcell.toString());
-        data = model![0].loadcell.toString();
       });
       do {
-        if (data == '1'){
+        if (model![0].loadcell.toString() == '1'){
+          demcheckdata++;
           var check = await Dio().getUri(Uri.http('192.168.16.2', '/checkconnect', {'api_key': '$id'}));
           if (check.statusCode == 200){
             List<dynamic> body = cnv.jsonDecode(check.data);
@@ -71,8 +71,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               });
           }
         }
-        demcheckdata++;
-      } while (demcheckdata <= 1);
+      } while (demcheckdata < 1);
     }
   }
 

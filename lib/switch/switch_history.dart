@@ -331,7 +331,7 @@ class _SwitchHistory extends State<SwitchHistory> {
                 ),
               ),
               SizedBox(
-                height: MediaQuery.of(context).size.height - 250,
+                height: MediaQuery.of(context).size.height - 260,
                 child: ListView(
                   children: [
                     (showHistory)
