@@ -651,7 +651,7 @@ class _SwitchHome extends State<SwitchHome>
                 )),
             SizedBox(height: 5),
             (model != null && _isConnected)
-                ? slideChemicalLevel(((int.parse(model![0].loadcell.toString())/5000)*100) / 100, sliderWidth)
+                ? slideChemicalLevel(double.parse(model![0].loadcell.toString()), sliderWidth)
                 : slideChemicalLevel(0, sliderWidth)
           ],
         )
@@ -1164,7 +1164,7 @@ class _SwitchHome extends State<SwitchHome>
     );
   }
 
-  Widget slideChemicalLevel(double? percentage, double width) {
+  Widget slideChemicalLevel(double percentage, double width) {
     return Padding(
         padding: EdgeInsets.fromLTRB(3,0,3,0),
         child: Column(
@@ -1173,7 +1173,7 @@ class _SwitchHome extends State<SwitchHome>
           children: [
             (!_isConnected || model == null)
                 ? Text('??%')
-                : Text('${(percentage!*100).toInt()}%'),
+                : Text('${((percentage/5000)*100).toInt()}%'),
             Row(
               children: [
                 SizedBox(
@@ -1203,7 +1203,7 @@ class _SwitchHome extends State<SwitchHome>
                             borderRadius: BorderRadius.circular(5),
                             color: Color(0xff00CC00),
                           ),
-                          width: percentage == null ? 0 : (width - (width * 0.24 + 2*(20 + 1.3 +10))) * percentage,
+                          width: (percentage == 0 ||percentage <= 20) ? 0 : (width - (width * 0.24 + 2*(20 + 1.3 +10))) * percentage,
                           height: 13.4,
                         ),
                       )

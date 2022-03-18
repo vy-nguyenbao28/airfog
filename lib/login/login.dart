@@ -86,7 +86,6 @@ class _Login extends State<Login> {
         temp = int.parse(model![0].temp.toString());
         loadcell = int.parse(model![0].loadcell.toString());
       });
-
       if (model![0].data.toString() == '1'){
         while (demcheckdata < 1){
           demcheckdata++;

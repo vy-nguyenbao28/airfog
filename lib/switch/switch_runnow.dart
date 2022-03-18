@@ -158,11 +158,6 @@ class _SwitchRunNow extends State<SwitchRunNow>
               color: AppColors.tertiary,
           ),
           onPressed: (){
-            int demcheckdata = 0;
-            do {
-              demcheckdata++;
-              print('2222222222222222');
-            } while (demcheckdata < 1);
             timePhun =
                 int.parse((controller.duration!.inHours % 60).toString())*3600 +
                     int.parse((controller.duration!.inMinutes % 60).toString())*60 +
@@ -525,12 +520,9 @@ class _SwitchRunNow extends State<SwitchRunNow>
                   ],
                 )),
             SizedBox(height: 5),
-            (model == null || !_isConnected)
-                ? slideChemicalLevel(0, sliderWidth)
-                : Container(),
             (model != null && _isConnected)
-                ? slideChemicalLevel(((int.parse(model![0].loadcell.toString())/5000)*100) / 100, sliderWidth)
-                : Container(),
+                ? slideChemicalLevel(double.parse(model![0].loadcell.toString()), sliderWidth)
+                : slideChemicalLevel(0, sliderWidth)
           ],
         )
     );
@@ -630,7 +622,7 @@ class _SwitchRunNow extends State<SwitchRunNow>
     );
   }
 
-  Widget slideChemicalLevel(double? percentage, double width) {
+  Widget slideChemicalLevel(double percentage, double width) {
     return Padding(
         padding: EdgeInsets.fromLTRB(3,0,3,0),
         child: Column(
@@ -639,7 +631,7 @@ class _SwitchRunNow extends State<SwitchRunNow>
           children: [
             (!_isConnected || model == null)
                 ? Text('??%')
-                : Text('${(percentage!*100).toInt()}%'),
+                : Text('${((percentage/5000)*100).toInt()}%'),
             Row(
               children: [
                 SizedBox(
@@ -669,7 +661,7 @@ class _SwitchRunNow extends State<SwitchRunNow>
                             borderRadius: BorderRadius.circular(5),
                             color: Color(0xff00CC00),
                           ),
-                          width: percentage == null ? 0 : (width - (width * 0.24 + 2*(20 + 1.3 +10))) * percentage,
+                          width: (percentage == 0 || percentage <= 20) ? 0 : (width - (width * 0.24 + 2*(20 + 1.3 +10))) * percentage,
                           height: 13.4,
                         ),
                       )
@@ -682,5 +674,4 @@ class _SwitchRunNow extends State<SwitchRunNow>
         )
     );
   }
-
 }

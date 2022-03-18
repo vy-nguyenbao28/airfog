@@ -49,8 +49,10 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
   //Khai báo Firebase
   CollectionReference machine = FirebaseFirestore.instance.collection('$id');
 
-
   updateHistoryToFireStore(String yearstart, String monthstart, String daystart, String timestart, int runtime, String errorcode) async {
+    setState(() {
+      viewedHistory = false;
+    });
     QuerySnapshot querySnapshot = await machine.doc('history').
       collection(yearstart).
       doc(monthstart).
@@ -160,8 +162,7 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
           _controller.pause();
         });
       }
-      if(temp <= int.parse(documentSnapshot['temp'].toString())
-          || int.parse(model![0].loadcell.toString()) > 20){
+      if(temp <= int.parse(documentSnapshot['temp'].toString()) || int.parse(model![0].loadcell.toString()) > 20){
         if (checkConfirmButton){
           setState(() {
             checkConfirmButton = false;
@@ -210,7 +211,6 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
         updateHistoryToFireStore(year.toString(), month.toString(), day.toString(), time.toString(), timeUp,'3');
         timePhun = 0;
         isActive = false;
-        //sendData('stop',{'api_key': '$id', 'stopcode':'0'});
         checkShowdialog = true;
       }
     }
@@ -223,7 +223,6 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
         updateHistoryToFireStore(year.toString(), month.toString(), day.toString(), time.toString(), timeUp,'4');
         timePhun = 0;
         isActive = false;
-        sendData('stop',{'api_key': '$id', 'stopcode':'1'});
         checkShowdialog = true;
       }
     }
