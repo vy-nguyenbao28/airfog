@@ -1,11 +1,8 @@
 import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:mist_app/drawer/personal_page.dart';
 import 'package:mist_app/home.dart';
 import 'package:mist_app/login/loading.dart';
-import 'package:mist_app/switch/switch_check.dart';
-import 'package:mist_app/switch/switch_history.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 Future<void> main() async {

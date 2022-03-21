@@ -42,6 +42,10 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     Dio().getUri(Uri.http('192.168.16.2','/$mode',dataSend));
   }
 
+  void sendDataBLE(String mode, final dataSend)async  {
+    Dio().getUri(Uri.http('192.168.16.2','/$mode',dataSend));
+  }
+
   int demcheckdata = 0;
 
   void getDataHttp() async {

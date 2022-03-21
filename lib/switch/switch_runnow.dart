@@ -661,7 +661,7 @@ class _SwitchRunNow extends State<SwitchRunNow>
                             borderRadius: BorderRadius.circular(5),
                             color: Color(0xff00CC00),
                           ),
-                          width: (percentage <= 20) ? 0 : (width - (width * 0.24 + 2*(20 + 1.3 +10))) * percentage,
+                          width: (percentage == 0 || percentage <= 20) ? 0 : (width - (width * 0.24 + 2*(20 + 1.3 +10))) * percentage,
                           height: 13.4,
                         ),
                       )

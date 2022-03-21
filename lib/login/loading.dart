@@ -108,7 +108,7 @@ class _Loading extends State<Loading> {
         child: Image.asset('assets/logo.gif', width: 200, color: AppColors.tertiary,),
       ),
       bottomNavigationBar: Container(
-        height: 65,
+        height: 70,
         padding: EdgeInsets.only(bottom: 20),
         child: Column(
           children: [

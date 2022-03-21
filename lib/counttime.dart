@@ -83,6 +83,7 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
           status = 'Hoàn thành';
           sendData('stop',{'api_key': '$id', 'stopcode':'0'});
           updateHistoryToFireStore(year.toString(), month.toString(), day.toString(), time.toString(), timePhun,'1');
+          sendData('response', {'api_key': '$id', 'rescode':'2'});
           //FlutterRingtonePlayer.playNotification();
           Navigator.of(context).pop();
           showDialog(
@@ -127,7 +128,6 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
   }
 
   //Hàm HTTP
-
   void sendData(String mode, final dataSend)async  {
     Dio().getUri(Uri.http('192.168.16.2','/$mode',dataSend));
   }
@@ -210,6 +210,7 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
         timeUp = timePhun - timeUp;
         updateHistoryToFireStore(year.toString(), month.toString(), day.toString(), time.toString(), timeUp,'3');
         timePhun = 0;
+        sendData('response', {'api_key': '$id', 'rescode':'2'});
         isActive = false;
         checkShowdialog = true;
       }
@@ -222,6 +223,7 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
         timeUp = timePhun - timeUp;
         updateHistoryToFireStore(year.toString(), month.toString(), day.toString(), time.toString(), timeUp,'4');
         timePhun = 0;
+        sendData('response', {'api_key': '$id', 'rescode':'2'});
         isActive = false;
         checkShowdialog = true;
       }
@@ -435,6 +437,7 @@ class _TimerApp extends State<TimerApp> with TickerProviderStateMixin{
                           timePhun = 0;
                           isActive = false;
                           sendData('stop',{'api_key': '$id', 'stopcode':'1'});
+                          sendData('response', {'api_key': '$id', 'rescode':'2'});
                         });
                         Navigator.of(context).pop();
                         Navigator.of(context).pop();
